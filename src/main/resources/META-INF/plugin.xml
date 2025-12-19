@@ -1,15 +1,38 @@
 <!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
 <idea-plugin>
     <id>nl.newfoundland.ams.intellij.plugin</id>
-    <name>amsterdam-intellij</name>
+    <name>Amsterdam</name>
     <vendor>spdrnl</vendor>
 
     <depends>com.intellij.modules.platform</depends>
 
     <resource-bundle>messages.MyBundle</resource-bundle>
 
-    <extensions defaultExtensionNs="nl.newfoundland.ams.intellij">
-        <!--toolWindow factoryClass="nl.newfoundland.ams.intellij.plugin.toolWindow.MyToolWindowFactory" id="MyToolWindow"/-->
-        <!--postStartupActivity implementation="nl.newfoundland.ams.intellij.plugin.startup.MyProjectActivity" /-->
+    <extensions defaultExtensionNs="com.intellij">
+        <fileType name="ams"
+                  implementationClass="com.github.spdrnl.amsterdamintellij.lang.amsFileType"
+                  fieldName="INSTANCE"
+                  language="ams"
+                  extensions="ams"/>
+        <lang.parserDefinition language="ams"
+                               implementationClass="com.github.spdrnl.amsterdamintellij.lang.amsParserDefinition"/>
+        <lang.syntaxHighlighterFactory language="ams"
+                                       implementationClass="com.github.spdrnl.amsterdamintellij.lang.AmsSyntaxHighlighterFactory"/>
+        <colorSettingsPage implementation="com.github.spdrnl.amsterdamintellij.lang.AmsColorSettingsPage"/>
+        <lang.psiStructureViewFactory language="ams"
+                                       implementationClass="com.github.spdrnl.amsterdamintellij.lang.amsStructureViewFactory"/>
+        <lang.braceMatcher language="ams"
+                           implementationClass="com.github.spdrnl.amsterdamintellij.lang.amsBraceMatcher"/>
+        <annotator language="ams"
+                   implementationClass="com.github.spdrnl.amsterdamintellij.lang.amsAnnotator"/>
+        <breadcrumbsInfoProvider implementation="com.github.spdrnl.amsterdamintellij.lang.amsBreadcrumbsProvider"/>
+        <lang.formatter language="ams"
+                        implementationClass="com.github.spdrnl.amsterdamintellij.lang.AmsFormattingModelBuilder"/>
+        <codeStyleSettingsProvider implementation="com.github.spdrnl.amsterdamintellij.lang.AmsCodeStyleSettingsProvider"/>
+        <langCodeStyleSettingsProvider implementation="com.github.spdrnl.amsterdamintellij.lang.AmsLanguageCodeStyleSettingsProvider"/>
+        <gotoSymbolContributor implementation="com.github.spdrnl.amsterdamintellij.lang.AmsSymbolContributor"/>
+        <elementDescriptionProvider implementation="com.github.spdrnl.amsterdamintellij.lang.AmsElementDescriptionProvider"/>
+        <lang.findUsagesProvider language="ams"
+                                implementationClass="com.github.spdrnl.amsterdamintellij.lang.AmsFindUsagesProvider"/>
     </extensions>
 </idea-plugin>

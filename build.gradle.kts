@@ -9,6 +9,7 @@ plugins {
     alias(libs.plugins.changelog) // Gradle Changelog Plugin
     alias(libs.plugins.qodana) // Gradle Qodana Plugin
     alias(libs.plugins.kover) // Gradle Kover Plugin
+    id("antlr")
 }
 
 group = providers.gradleProperty("pluginGroup").get()
@@ -19,9 +20,27 @@ kotlin {
     jvmToolchain(21)
 }
 
+tasks.withType<AntlrTask>().configureEach {
+    arguments.addAll(listOf("-visitor", "-no-listener", "-package", "com.github.spdrnl.amsterdamintellij.parser"))
+    outputDirectory = file("src/main/gen/com/github/spdrnl/amsterdamintellij/parser")
+}
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+    dependsOn(tasks.withType<AntlrTask>())
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs("src/main/gen")
+        }
+    }
+}
+
 // Configure project's dependencies
 repositories {
     mavenCentral()
+    mavenLocal()
 
     // IntelliJ Platform Gradle Plugin Repositories Extension - read more: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-repositories-extension.html
     intellijPlatform {
@@ -31,10 +50,12 @@ repositories {
 
 // Dependencies are managed with Gradle version catalog - read more: https://docs.gradle.org/current/userguide/version_catalogs.html
 dependencies {
+    "antlr"(libs.antlr4)
+    implementation(libs.antlr4.runtime)
+
     testImplementation(libs.junit)
     testImplementation(libs.opentest4j)
 
-    // IntelliJ Platform Gradle Plugin Dependencies Extension - read more: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-dependencies-extension.html
     intellijPlatform {
         intellijIdea(providers.gradleProperty("platformVersion"))
 
@@ -49,8 +70,10 @@ dependencies {
 
         testFramework(TestFrameworkType.Platform)
     }
-}
 
+    // Add the new local JAR
+    implementation(files("libs/antlr4-intellij-adaptor-next-SNAPSHOT.jar"))
+}
 // Configure IntelliJ Platform Gradle Plugin - read more: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-extension.html
 intellijPlatform {
     pluginConfiguration {
