@@ -22,33 +22,6 @@ class amsStructureViewElement(private val element: PsiElement) : StructureViewTr
         }
     }
 
-    private fun findRecursively(node: PsiElement, ruleIndex: Int): PsiElement? {
-        if (node is ANTLRPsiNode && node.node.elementType is RuleIElementType && 
-            (node.node.elementType as RuleIElementType).ruleIndex == ruleIndex) {
-            return node
-        }
-        for (child in node.children) {
-            val found = findRecursively(child, ruleIndex)
-            if (found != null) return found
-        }
-        return null
-    }
-
-    private fun findRecursivelyByName(node: PsiElement, name: String): PsiElement? {
-        if (node is ANTLRPsiNode && node.node.elementType.toString().contains(name)) {
-            return node
-        }
-        for (child in node.children) {
-            val found = findRecursivelyByName(child, name)
-            if (found != null) return found
-        }
-        return null
-    }
-
-    override fun canNavigate(): Boolean = element is NavigatablePsiElement
-
-    override fun canNavigateToSource(): Boolean = element is NavigatablePsiElement
-
     fun getPresentableText(): String {
         if (element is amsFile) {
             return element.name
@@ -77,7 +50,7 @@ class amsStructureViewElement(private val element: PsiElement) : StructureViewTr
                     OwlDslParser.RULE_annotationPropertyAxiom,
                     OwlDslParser.RULE_datatypeAxiom,
                     OwlDslParser.RULE_subPropertyChainAxiom -> {
-                        getAxiomLabel(element)
+                        AmsPsiUtil.getAxiomLabel(element)
                     }
                     OwlDslParser.RULE_classClause,
                     OwlDslParser.RULE_objectPropertyClause,
@@ -111,97 +84,12 @@ class amsStructureViewElement(private val element: PsiElement) : StructureViewTr
                     OwlDslParser.RULE_dataPropertyAxiom -> 6
                     OwlDslParser.RULE_datatypeAxiom -> 7
                     OwlDslParser.RULE_individualAxiom -> 8
-                    OwlDslParser.RULE_subPropertyChainAxiom -> 8
-                    else -> 8 // Other
+                    OwlDslParser.RULE_subPropertyChainAxiom -> 9
+                    else -> 9 // Other
                 }
             }
         }
-        return 8
-    }
-
-    private fun getAxiomLabel(axiom: ANTLRPsiNode): String {
-        val label = findLabelAnnotation(axiom)
-        if (label != null) return label
-
-        val idNode = findIdNode(axiom)
-        return idNode?.text ?: axiom.text.take(20)
-    }
-
-    private fun findLabelAnnotation(node: ANTLRPsiNode): String? {
-        // Look for @annotation(rdfs:label "...")
-        // In OwlDsl.g4, annotatedAxiom : annotationBlock+ bareAxiom
-        // But amsStructureViewElement might be called on the inner axiom node (ClassDeclAxiom etc.)
-        // If it's a classAxiom, we might need to look at its parent (bareAxiom -> annotatedAxiom)
-        
-        var current: PsiElement? = node
-        while (current != null && current !is amsFile) {
-            if (current is ANTLRPsiNode && current.node.elementType is RuleIElementType) {
-                val type = (current.node.elementType as RuleIElementType).ruleIndex
-                if (type == OwlDslParser.RULE_annotatedAxiom || type == OwlDslParser.RULE_annotatedOntologyHeader) {
-                    val blocks = current.children.filter { 
-                        it is ANTLRPsiNode && it.node.elementType is RuleIElementType && 
-                        (it.node.elementType as RuleIElementType).ruleIndex == OwlDslParser.RULE_annotationBlock 
-                    }
-                    for (block in blocks) {
-                        val list = block.children.find { 
-                            it is ANTLRPsiNode && it.node.elementType is RuleIElementType && 
-                            (it.node.elementType as RuleIElementType).ruleIndex == OwlDslParser.RULE_annotationList 
-                        }
-                        val annotations = list?.children?.filter { 
-                            it is ANTLRPsiNode && it.node.elementType is RuleIElementType && 
-                            (it.node.elementType as RuleIElementType).ruleIndex == OwlDslParser.RULE_annotation 
-                        } ?: emptyList()
-
-                        for (ann in annotations) {
-                            val propId = ann.children.find { 
-                                it is ANTLRPsiNode && it.node.elementType is RuleIElementType && 
-                                (it.node.elementType as RuleIElementType).ruleIndex == OwlDslParser.RULE_propId 
-                            }
-                            if (propId?.text?.endsWith("rdfs:label") == true || propId?.text == "rdfs:label") {
-                                val literal = ann.children.find { 
-                                    it is ANTLRPsiNode && it.node.elementType is RuleIElementType && 
-                                    (it.node.elementType as RuleIElementType).ruleIndex == OwlDslParser.RULE_literal 
-                                }
-                                if (literal != null) {
-                                    val text = literal.text
-                                    return when {
-                                        text.startsWith("\"\"\"") -> text.substringAfter("\"\"\"").substringBeforeLast("\"\"\"")
-                                        text.startsWith("\"") -> text.substringAfter("\"").substringBeforeLast("\"")
-                                        else -> text
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            current = current.parent
-        }
-        return null
-    }
-
-    private fun findIdNode(node: ANTLRPsiNode): PsiElement? {
-        val ruleIElementType = node.node.elementType as? RuleIElementType ?: return null
-        val targetRule = when (ruleIElementType.ruleIndex) {
-            OwlDslParser.RULE_classAxiom -> OwlDslParser.RULE_classId
-            OwlDslParser.RULE_objectPropertyAxiom, OwlDslParser.RULE_dataPropertyAxiom -> OwlDslParser.RULE_propId
-            OwlDslParser.RULE_individualAxiom -> OwlDslParser.RULE_individualId
-            OwlDslParser.RULE_annotationPropertyAxiom -> OwlDslParser.RULE_propId
-            OwlDslParser.RULE_datatypeAxiom -> OwlDslParser.RULE_datatypeId
-            OwlDslParser.RULE_subPropertyChainAxiom -> OwlDslParser.RULE_propId
-            else -> null
-        }
-        
-        if (targetRule != null) {
-            val found = findRecursively(node, targetRule)
-            if (found != null) {
-                 // found is classId, we need its child (CURIE or IRI)
-                 return found.children.firstOrNull() ?: found
-            }
-        }
-
-        // Try common terminal names as fallback
-        return findRecursivelyByName(node, "CURIE") ?: findRecursivelyByName(node, "IRI")
+        return 9
     }
 
     fun getIcon(): Icon? {
@@ -220,6 +108,8 @@ class amsStructureViewElement(private val element: PsiElement) : StructureViewTr
                     OwlDslParser.RULE_objectPropertyAxiom -> AmsIcons.OBJECT_PROPERTY
                     OwlDslParser.RULE_dataPropertyAxiom -> AmsIcons.DATA_PROPERTY
                     OwlDslParser.RULE_annotationPropertyAxiom -> AmsIcons.ANNOTATION_PROPERTY
+                    OwlDslParser.RULE_individualAxiom -> com.intellij.util.PlatformIcons.ANONYMOUS_CLASS_ICON
+                    OwlDslParser.RULE_datatypeAxiom -> com.intellij.util.PlatformIcons.CLASS_ICON
                     else -> null
                 }
             }
@@ -268,7 +158,8 @@ class amsStructureViewElement(private val element: PsiElement) : StructureViewTr
                 amsStructureGroup("Object Properties", 5, allElements.filter { it.getType() == 5 }),
                 amsStructureGroup("Data Properties", 6, allElements.filter { it.getType() == 6 }),
                 amsStructureGroup("Data Types", 7, allElements.filter { it.getType() == 7 }),
-                amsStructureGroup("Other", 8, allElements.filter { it.getType() == 8 })
+                amsStructureGroup("Individuals", 8, allElements.filter { it.getType() == 8 }),
+                amsStructureGroup("Other", 9, allElements.filter { it.getType() == 9 })
             )
 
             return groups.filter { it.children.isNotEmpty() }.toTypedArray()
@@ -303,7 +194,7 @@ class amsStructureViewElement(private val element: PsiElement) : StructureViewTr
                     OwlDslParser.RULE_annotatedAxiom,
                     OwlDslParser.RULE_bareAxiom -> {
                         // Find the axiom node which contains classAxiom etc.
-                        val axiom = findRecursively(node, OwlDslParser.RULE_axiom)
+                        val axiom = AmsPsiUtil.findRecursively(node, OwlDslParser.RULE_axiom)
                         if (axiom is ANTLRPsiNode) {
                             // axiom -> classAxiom
                             val concreteAxiom = axiom.children.firstOrNull { 
@@ -316,8 +207,8 @@ class amsStructureViewElement(private val element: PsiElement) : StructureViewTr
                         }
                     }
                     OwlDslParser.RULE_annotatedOntologyHeader -> {
-                        val header = findRecursively(node, OwlDslParser.RULE_ontologyHeader)
-                        if (header != null) {
+                        val header = AmsPsiUtil.findRecursively(node, OwlDslParser.RULE_ontologyHeader)
+                        if (header is PsiElement) {
                             children.add(amsStructureViewElement(header))
                             return
                         }

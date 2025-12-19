@@ -34,5 +34,15 @@
         <elementDescriptionProvider implementation="com.github.spdrnl.amsterdamintellij.lang.AmsElementDescriptionProvider"/>
         <lang.findUsagesProvider language="ams"
                                 implementationClass="com.github.spdrnl.amsterdamintellij.lang.AmsFindUsagesProvider"/>
+        <lang.documentationProvider language="ams"
+                                    implementationClass="com.github.spdrnl.amsterdamintellij.lang.AmsDocumentationProvider"/>
+
+        <defaultLiveTemplatesProvider implementation="com.github.spdrnl.amsterdamintellij.lang.AmsLiveTemplatesProvider"/>
+        <liveTemplateContext contextId="AMSTERDAM" implementation="com.github.spdrnl.amsterdamintellij.lang.AmsContext"/>
+
+        <codeInsight.inlayProvider language="ams"
+                                   implementationClass="com.github.spdrnl.amsterdamintellij.lang.AmsInlayHintsProvider"/>
+        <completion.contributor language="ams"
+                                implementationClass="com.github.spdrnl.amsterdamintellij.lang.AmsCompletionContributor"/>
     </extensions>
 </idea-plugin>

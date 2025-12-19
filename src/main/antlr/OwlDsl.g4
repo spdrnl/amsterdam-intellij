@@ -5,7 +5,7 @@ grammar OwlDsl;
  */
 
 ontology
-    : (prefixDecl | ontologyPropertyBlock | annotatedAxiom | bareAxiom | annotatedOntologyHeader | ontologyHeader)* EOF
+    : (prefixDecl | ontologyPropertyBlock | annotatedAxiom | bareAxiom | annotatedOntologyHeader | ontologyHeader | INTELLIJ_DUMMY)* EOF
     ;
 
 /*
@@ -565,36 +565,42 @@ entityUsage
     : CURIE
     | CURIE_EMPTY
     | fullIRI
+    | INTELLIJ_DUMMY
     ;
 
 entityId
     : CURIE
     | CURIE_EMPTY
     | fullIRI
+    | INTELLIJ_DUMMY
     ;
 
 classId
     : CURIE
     | CURIE_EMPTY
     | fullIRI
+    | INTELLIJ_DUMMY
     ;
 
 propId
     : CURIE
     | CURIE_EMPTY
     | fullIRI
+    | INTELLIJ_DUMMY
     ;
 
 individualId
     : CURIE
     | CURIE_EMPTY
     | fullIRI
+    | INTELLIJ_DUMMY
     ;
 
 datatypeId
     : CURIE
     | CURIE_EMPTY
     | fullIRI
+    | INTELLIJ_DUMMY
     ;
 
 namespaceIRI
@@ -621,6 +627,10 @@ literal
 /*
  * Lexer rules
  */
+
+INTELLIJ_DUMMY
+    : 'IntellijIdeaRulezzz'
+    ;
 
 PREFIX_NAME
     : [A-Za-z_] [A-Za-z0-9_]* ':'

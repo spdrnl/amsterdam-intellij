@@ -152,9 +152,101 @@ class amsStructureViewTest : BasePlatformTestCase() {
             assertEquals(":A", alphaSortedClassChildren[0].presentation.presentableText)
             assertEquals(":B", alphaSortedClassChildren[1].presentation.presentableText)
 
-            // Type Sort should be gone
-            assertNull(model.sorters.find { it.name == "TYPE_SORTER" })
+            // Type Sort should be present
+            assertNotNull(model.sorters.find { it.name == "TYPE_SORTER" })
             
+        } finally {
+            structureView.dispose()
+        }
+    }
+
+    fun testStructureViewFilter() {
+        val text = """
+            Prefix : <http://example.org/> .
+            Class :A .
+        """.trimIndent()
+
+        val psiFile = myFixture.configureByText("test_filter.ams", text)
+        val builder = com.intellij.lang.LanguageStructureViewBuilder.getInstance().getStructureViewBuilder(psiFile)
+        val structureView = builder!!.createStructureView(null, project) as StructureViewComponent
+
+        try {
+            val model = structureView.treeModel as amsStructureViewModel
+            val root = model.root
+            
+            // Initially, both groups are present
+            var groups = root.children
+            assertTrue(groups.any { it.presentation.presentableText == "Prefixes" })
+            assertTrue(groups.any { it.presentation.presentableText == "Classes" })
+
+            // Apply Prefix Filter
+            val filter = model.filters.find { it.name == "HIDE_PREFIXES" }!!
+            val prefixesGroup = groups.find { it.presentation.presentableText == "Prefixes" }!!
+            val classesGroup = groups.find { it.presentation.presentableText == "Classes" }!!
+
+            assertFalse("Prefixes should be filtered out", filter.isVisible(prefixesGroup))
+            assertTrue("Classes should be visible", filter.isVisible(classesGroup))
+
+        } finally {
+            structureView.dispose()
+        }
+    }
+
+    fun testStructureViewIndividualFilter() {
+        val text = """
+            Individual :i1 .
+            Class :A .
+        """.trimIndent()
+
+        val psiFile = myFixture.configureByText("test_filter_indiv.ams", text)
+        val builder = com.intellij.lang.LanguageStructureViewBuilder.getInstance().getStructureViewBuilder(psiFile)
+        val structureView = builder!!.createStructureView(null, project) as StructureViewComponent
+
+        try {
+            val model = structureView.treeModel as amsStructureViewModel
+            val root = model.root
+            
+            val groups = root.children
+            assertTrue(groups.any { it.presentation.presentableText == "Individuals" })
+            assertTrue(groups.any { it.presentation.presentableText == "Classes" })
+
+            val filter = model.filters.find { it.name == "HIDE_INDIVIDUALS" }!!
+            val individualsGroup = groups.find { it.presentation.presentableText == "Individuals" }!!
+            val classesGroup = groups.find { it.presentation.presentableText == "Classes" }!!
+
+            assertFalse("Individuals should be filtered out", filter.isVisible(individualsGroup))
+            assertTrue("Classes should be visible", filter.isVisible(classesGroup))
+
+        } finally {
+            structureView.dispose()
+        }
+    }
+
+    fun testStructureViewAnnotationPropertyFilter() {
+        val text = """
+            AnnotationProperty :ap1 .
+            Class :A .
+        """.trimIndent()
+
+        val psiFile = myFixture.configureByText("test_filter_ann.ams", text)
+        val builder = com.intellij.lang.LanguageStructureViewBuilder.getInstance().getStructureViewBuilder(psiFile)
+        val structureView = builder!!.createStructureView(null, project) as StructureViewComponent
+
+        try {
+            val model = structureView.treeModel as amsStructureViewModel
+            val root = model.root
+            
+            val groups = root.children
+            assertTrue(groups.any { it.presentation.presentableText == "Annotation Properties" })
+            assertTrue(groups.any { it.presentation.presentableText == "Classes" })
+
+            val filter = model.filters.find { it.name == "HIDE_ANNOTATION_PROPERTIES" }!!
+            val annPropGroup = groups.find { it.presentation.presentableText == "Annotation Properties" }!!
+            val classesGroup = groups.find { it.presentation.presentableText == "Classes" }!!
+
+            assertFalse("Annotation Properties should be filtered out", filter.isVisible(annPropGroup))
+            assertTrue("Classes should be visible", filter.isVisible(classesGroup))
+
         } finally {
             structureView.dispose()
         }

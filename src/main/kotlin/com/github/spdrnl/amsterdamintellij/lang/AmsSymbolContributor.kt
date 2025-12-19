@@ -40,28 +40,9 @@ class AmsSymbolContributor : ChooseByNameContributor {
 }
 
 class AmsNavigationItem(private val element: AmsCurie) : NavigationItem {
-    override fun getName(): String? = element.text
-    override fun getPresentation() = amsStructureViewElement(findAxiom(element)).getPresentation()
+    override fun getName(): String? = AmsPsiUtil.getAxiomLabel(AmsPsiUtil.findAxiom(element) ?: element)
+    override fun getPresentation() = amsStructureViewElement(AmsPsiUtil.findAxiom(element) ?: element).getPresentation()
     override fun navigate(requestFocus: Boolean) = element.navigate(requestFocus)
     override fun canNavigate(): Boolean = element.canNavigate()
     override fun canNavigateToSource(): Boolean = element.canNavigateToSource()
-
-    private fun findAxiom(element: AmsCurie): PsiElement {
-        var p = element.parent
-        while (p != null) {
-            if (p is org.antlr.intellij.adaptor.psi.ANTLRPsiNode) {
-                val type = (p.node.elementType as? org.antlr.intellij.adaptor.lexer.RuleIElementType)?.ruleIndex
-                if (type == com.github.spdrnl.amsterdamintellij.parser.OwlDslParser.RULE_classAxiom ||
-                    type == com.github.spdrnl.amsterdamintellij.parser.OwlDslParser.RULE_objectPropertyAxiom ||
-                    type == com.github.spdrnl.amsterdamintellij.parser.OwlDslParser.RULE_dataPropertyAxiom ||
-                    type == com.github.spdrnl.amsterdamintellij.parser.OwlDslParser.RULE_annotationPropertyAxiom ||
-                    type == com.github.spdrnl.amsterdamintellij.parser.OwlDslParser.RULE_datatypeAxiom ||
-                    type == com.github.spdrnl.amsterdamintellij.parser.OwlDslParser.RULE_individualAxiom) {
-                    return p
-                }
-            }
-            p = p.parent
-        }
-        return element
-    }
 }
