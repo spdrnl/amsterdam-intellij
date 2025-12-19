@@ -107,34 +107,27 @@ class amsAnnotator : Annotator {
         } ?: return
 
         val propName = propId.text
-        if (propName.endsWith("rdfs:label") || propName == "rdfs:label") {
+        val isLabel = propName.endsWith("rdfs:label") || propName == "rdfs:label"
+        val isSkosDef = propName.endsWith("skos:definition") || propName == "skos:definition"
+
+        if (isLabel || isSkosDef) {
             val literal = element.children.find {
                 it is ANTLRPsiNode && (it.node.elementType as? RuleIElementType)?.ruleIndex == OwlDslParser.RULE_literal
             } ?: return
             val file = element.containingFile as? amsFile ?: return
-            val labelData = getLabelData(literal as ANTLRPsiNode) ?: return
-            val allLabels = file.getAllLabels()
-
-            if (allLabels.count { it.second == labelData } > 1) {
-                holder.newAnnotation(
-                    HighlightSeverity.ERROR,
-                    "Duplicate rdfs:label: ${labelData.first}${labelData.second ?: ""}"
-                )
-                    .range(literal.textRange)
-                    .create()
+            val labelData = getLabelData(literal as ANTLRPsiNode)
+            
+            val matches = if (isLabel) {
+                file.getAllLabels().filter { it.second == labelData }
+            } else {
+                file.getAllSkosDefinitions().filter { it.second == labelData }
             }
-        } else if (propName.endsWith("skos:definition") || propName == "skos:definition") {
-            val literal = element.children.find {
-                it is ANTLRPsiNode && (it.node.elementType as? RuleIElementType)?.ruleIndex == OwlDslParser.RULE_literal
-            } ?: return
-            val file = element.containingFile as? amsFile ?: return
-            val labelData = getLabelData(literal as ANTLRPsiNode) ?: return
-            val allDefs = file.getAllSkosDefinitions()
 
-            if (allDefs.count { it.second == labelData } > 1) {
+            if (matches.size > 1) {
+                val msgPrefix = if (isLabel) "Duplicate rdfs:label" else "Duplicate skos:definition"
                 holder.newAnnotation(
                     HighlightSeverity.ERROR,
-                    "Duplicate skos:definition: ${labelData.first}${labelData.second ?: ""}"
+                    "$msgPrefix: ${labelData.first}${labelData.second ?: ""}"
                 )
                     .range(literal.textRange)
                     .create()
@@ -143,13 +136,6 @@ class amsAnnotator : Annotator {
     }
 
     private fun getLabelData(literal: ANTLRPsiNode): Pair<String, String?> {
-        val langTag = literal.children.find { it.node.elementType.toString().contains("LANGTAG") }?.text
-        val rawText = literal.text
-        val content = when {
-            rawText.startsWith("\"\"\"") -> rawText.substringAfter("\"\"\"").substringBeforeLast("\"\"\"")
-            rawText.startsWith("\"") -> rawText.substringAfter("\"").substringBeforeLast("\"")
-            else -> rawText
-        }
-        return content to langTag
+        return AmsPsiUtil.getLiteralContent(literal)
     }
 }

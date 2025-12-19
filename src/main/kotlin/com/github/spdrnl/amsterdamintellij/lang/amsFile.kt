@@ -36,58 +36,42 @@ class amsFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, amsLan
     }
 
     fun getDefinitionsByIri(): Map<String, List<AmsCurie>> {
+        return getCaches().first
+    }
+
+    fun getDefinitionsByText(): Map<String, List<AmsCurie>> {
+        return getCaches().second
+    }
+
+    private fun getCaches(): Triple<Map<String, List<AmsCurie>>, Map<String, List<AmsCurie>>, List<AmsCurie>> {
         return CachedValuesManager.getCachedValue(this) {
             val allCuries = PsiTreeUtil.findChildrenOfType(this, AmsCurie::class.java)
-            val map = allCuries.filter { it.isDef() }
-                .groupBy { it.getFullIri() ?: "" }
-                .filterKeys { it.isNotEmpty() }
-            CachedValueProvider.Result.create(map, this)
+            val defs = allCuries.filter { it.isDef() }
+            val iriMap = defs.groupBy { it.getFullIri() ?: "" }.filterKeys { it.isNotEmpty() }
+            val textMap = defs.groupBy { it.text }
+            CachedValueProvider.Result.create(Triple(iriMap, textMap, defs), this)
         }
     }
 
     fun getAllDefinitions(): List<AmsCurie> {
-        return CachedValuesManager.getCachedValue(this) {
-            val allCuries = PsiTreeUtil.findChildrenOfType(this, AmsCurie::class.java)
-            val defs = allCuries.filter { it.isDef() }
-            CachedValueProvider.Result.create(defs, this)
-        }
+        return getCaches().third
     }
 
     fun getAllLabels(): List<Pair<PsiElement, Pair<String, String?>>> {
-        return CachedValuesManager.getCachedValue(this) {
-            val results = mutableListOf<Pair<PsiElement, Pair<String, String?>>>()
-            val annotations = PsiTreeUtil.findChildrenOfType(this, ANTLRPsiNode::class.java)
-                .filter { (it.node.elementType as? RuleIElementType)?.ruleIndex == OwlDslParser.RULE_annotation }
-
-            for (ann in annotations) {
-                val propId = ann.children.find {
-                    it is ANTLRPsiNode && (it.node.elementType as? RuleIElementType)?.ruleIndex == OwlDslParser.RULE_entityUsage
-                }
-                if (propId?.text?.endsWith("rdfs:label") == true || propId?.text == "rdfs:label") {
-                    val literal = ann.children.find {
-                        it is ANTLRPsiNode && (it.node.elementType as? RuleIElementType)?.ruleIndex == OwlDslParser.RULE_literal
-                    }
-                    if (literal != null) {
-                        val langTag = literal.children.find { it.node.elementType.toString().contains("LANGTAG") }?.text
-                        val rawText = literal.text
-                        val content = when {
-                            rawText.startsWith("\"\"\"") -> rawText.substringAfter("\"\"\"")
-                                .substringBeforeLast("\"\"\"")
-
-                            rawText.startsWith("\"") -> rawText.substringAfter("\"").substringBeforeLast("\"")
-                            else -> rawText
-                        }
-                        results.add(literal to (content to langTag))
-                    }
-                }
-            }
-            CachedValueProvider.Result.create(results, this)
-        }
+        return getAllAnnotationsByProperty(setOf("rdfs:label"))
+            .filter { it.second.third == "rdfs:label" }
+            .map { it.first to (it.second.first to it.second.second) }
     }
 
     fun getAllSkosDefinitions(): List<Pair<PsiElement, Pair<String, String?>>> {
+        return getAllAnnotationsByProperty(setOf("skos:definition"))
+            .filter { it.second.third == "skos:definition" }
+            .map { it.first to (it.second.first to it.second.second) }
+    }
+
+    private fun getAllAnnotationsByProperty(propNames: Set<String>): List<Pair<PsiElement, Triple<String, String?, String>>> {
         return CachedValuesManager.getCachedValue(this) {
-            val results = mutableListOf<Pair<PsiElement, Pair<String, String?>>>()
+            val results = mutableListOf<Pair<PsiElement, Triple<String, String?, String>>>()
             val annotations = PsiTreeUtil.findChildrenOfType(this, ANTLRPsiNode::class.java)
                 .filter { (it.node.elementType as? RuleIElementType)?.ruleIndex == OwlDslParser.RULE_annotation }
 
@@ -95,21 +79,14 @@ class amsFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, amsLan
                 val propId = ann.children.find {
                     it is ANTLRPsiNode && (it.node.elementType as? RuleIElementType)?.ruleIndex == OwlDslParser.RULE_entityUsage
                 }
-                if (propId?.text?.endsWith("skos:definition") == true || propId?.text == "skos:definition") {
+                val matchedProp = propNames.find { propId?.text?.endsWith(it) == true || propId?.text == it }
+                if (matchedProp != null) {
                     val literal = ann.children.find {
                         it is ANTLRPsiNode && (it.node.elementType as? RuleIElementType)?.ruleIndex == OwlDslParser.RULE_literal
                     }
                     if (literal != null) {
-                        val langTag = literal.children.find { it.node.elementType.toString().contains("LANGTAG") }?.text
-                        val rawText = literal.text
-                        val content = when {
-                            rawText.startsWith("\"\"\"") -> rawText.substringAfter("\"\"\"")
-                                .substringBeforeLast("\"\"\"")
-
-                            rawText.startsWith("\"") -> rawText.substringAfter("\"").substringBeforeLast("\"")
-                            else -> rawText
-                        }
-                        results.add(literal to (content to langTag))
+                        val (content, langTag) = AmsPsiUtil.getLiteralContent(literal)
+                        results.add(literal to Triple(content, langTag, matchedProp))
                     }
                 }
             }

@@ -20,8 +20,17 @@ object AmsPsiUtil {
     }
 
     fun findRecursivelyByName(node: PsiElement, name: String): PsiElement? {
-        if (node is ANTLRPsiNode && node.node.elementType.toString().contains(name)) {
-            return node
+        if (node is ANTLRPsiNode) {
+            val type = node.node.elementType
+            if (type is org.antlr.intellij.adaptor.lexer.TokenIElementType) {
+                if (com.github.spdrnl.amsterdamintellij.parser.OwlDslLexer.VOCABULARY.getSymbolicName(type.antlrTokenType) == name) {
+                    return node
+                }
+            } else if (type is RuleIElementType) {
+                if (com.github.spdrnl.amsterdamintellij.parser.OwlDslParser.ruleNames[type.ruleIndex] == name) {
+                    return node
+                }
+            }
         }
         for (child in node.children) {
             val found = findRecursivelyByName(child, name)
@@ -60,53 +69,54 @@ object AmsPsiUtil {
         return candidates.first().first
     }
 
-    fun findAllAnnotations(node: PsiElement, propName: String): List<Pair<String, String?>> {
+    fun getLiteralContent(literal: PsiElement): Pair<String, String?> {
+        val langTag = literal.children.find {
+            val type = it.node.elementType
+            type is org.antlr.intellij.adaptor.lexer.TokenIElementType && type.antlrTokenType == com.github.spdrnl.amsterdamintellij.parser.OwlDslLexer.LANGTAG
+        }?.text
+        val rawText = literal.text
+        val content = when {
+            rawText.startsWith("\"\"\"") -> rawText.substringAfter("\"\"\"")
+                .substringBeforeLast("\"\"\"")
+
+            rawText.startsWith("\"") -> rawText.substringAfter("\"")
+                .substringBeforeLast("\"")
+
+            else -> rawText
+        }
+        return content to langTag
+    }
+
+    fun findAllAnnotations(node: PsiElement, propNames: Set<String>): List<Triple<String, String?, String>> {
         var current: PsiElement? = node
-        val candidates = mutableListOf<Pair<String, String?>>()
+        val candidates = mutableListOf<Triple<String, String?, String>>()
 
         while (current != null && current !is amsFile) {
-            if (current is ANTLRPsiNode && current.node.elementType is RuleIElementType) {
-                val type = (current.node.elementType as RuleIElementType).ruleIndex
+            if (current is ANTLRPsiNode) {
+                val type = (current.node.elementType as? RuleIElementType)?.ruleIndex
                 if (type == OwlDslParser.RULE_annotatedAxiom || type == OwlDslParser.RULE_annotatedOntologyHeader) {
-                    val blocks = current.children.filter {
-                        it is ANTLRPsiNode && it.node.elementType is RuleIElementType &&
-                                (it.node.elementType as RuleIElementType).ruleIndex == OwlDslParser.RULE_annotationBlock
-                    }
-                    for (block in blocks) {
-                        val list = block.children.find {
-                            it is ANTLRPsiNode && it.node.elementType is RuleIElementType &&
-                                    (it.node.elementType as RuleIElementType).ruleIndex == OwlDslParser.RULE_annotationList
-                        }
-                        val annotations = list?.children?.filter {
-                            it is ANTLRPsiNode && it.node.elementType is RuleIElementType &&
-                                    (it.node.elementType as RuleIElementType).ruleIndex == OwlDslParser.RULE_annotation
-                        } ?: emptyList()
-
-                        for (ann in annotations) {
-                            val propId = ann.children.find {
-                                it is ANTLRPsiNode && it.node.elementType is RuleIElementType &&
-                                        (it.node.elementType as RuleIElementType).ruleIndex == OwlDslParser.RULE_entityUsage
+                    for (block in current.children) {
+                        if (block is ANTLRPsiNode && (block.node.elementType as? RuleIElementType)?.ruleIndex == OwlDslParser.RULE_annotationBlock) {
+                            val list = block.children.find {
+                                it is ANTLRPsiNode && (it.node.elementType as? RuleIElementType)?.ruleIndex == OwlDslParser.RULE_annotationList
                             }
-                            if (propId?.text?.endsWith(propName) == true || propId?.text == propName) {
-                                val literal = ann.children.find {
-                                    it is ANTLRPsiNode && it.node.elementType is RuleIElementType &&
-                                            (it.node.elementType as RuleIElementType).ruleIndex == OwlDslParser.RULE_literal
-                                }
-                                if (literal != null) {
-                                    val langTag = literal.children.find {
-                                        it.node.elementType.toString().contains("LANGTAG")
-                                    }?.text
-                                    val rawText = literal.text
-                                    val content = when {
-                                        rawText.startsWith("\"\"\"") -> rawText.substringAfter("\"\"\"")
-                                            .substringBeforeLast("\"\"\"")
-
-                                        rawText.startsWith("\"") -> rawText.substringAfter("\"")
-                                            .substringBeforeLast("\"")
-
-                                        else -> rawText
+                            if (list != null) {
+                                for (ann in list.children) {
+                                    if (ann is ANTLRPsiNode && (ann.node.elementType as? RuleIElementType)?.ruleIndex == OwlDslParser.RULE_annotation) {
+                                        val propId = ann.children.find {
+                                            it is ANTLRPsiNode && (it.node.elementType as? RuleIElementType)?.ruleIndex == OwlDslParser.RULE_entityUsage
+                                        }
+                                        val matchedProp = propNames.find { propId?.text?.endsWith(it) == true || propId?.text == it }
+                                        if (matchedProp != null) {
+                                            val literal = ann.children.find {
+                                                it is ANTLRPsiNode && (it.node.elementType as? RuleIElementType)?.ruleIndex == OwlDslParser.RULE_literal
+                                            }
+                                            if (literal != null) {
+                                                val (content, langTag) = getLiteralContent(literal)
+                                                candidates.add(Triple(content, langTag, matchedProp))
+                                            }
+                                        }
                                     }
-                                    candidates.add(content to langTag)
                                 }
                             }
                         }
@@ -116,6 +126,10 @@ object AmsPsiUtil {
             current = current.parent
         }
         return candidates
+    }
+
+    fun findAllAnnotations(node: PsiElement, propName: String): List<Pair<String, String?>> {
+        return findAllAnnotations(node, setOf(propName)).map { it.first to it.second }
     }
 
     fun findIdNode(node: ANTLRPsiNode): PsiElement? {
@@ -141,7 +155,7 @@ object AmsPsiUtil {
     }
 
     fun findAxiom(element: PsiElement): PsiElement? {
-        var p = element.parent
+        var p: PsiElement? = element
         while (p != null) {
             if (p is ANTLRPsiNode) {
                 val type = (p.node.elementType as? RuleIElementType)?.ruleIndex
@@ -150,11 +164,13 @@ object AmsPsiUtil {
                     type == OwlDslParser.RULE_dataPropertyAxiom ||
                     type == OwlDslParser.RULE_annotationPropertyAxiom ||
                     type == OwlDslParser.RULE_datatypeAxiom ||
-                    type == OwlDslParser.RULE_individualAxiom
+                    type == OwlDslParser.RULE_individualAxiom ||
+                    type == OwlDslParser.RULE_subPropertyChainAxiom
                 ) {
                     return p
                 }
             }
+            if (p is amsFile) break
             p = p.parent
         }
         return null

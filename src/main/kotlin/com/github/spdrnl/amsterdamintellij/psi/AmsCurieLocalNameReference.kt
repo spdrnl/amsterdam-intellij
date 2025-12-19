@@ -25,9 +25,9 @@ class AmsCurieLocalNameReference(element: AmsCurie, range: TextRange) : PsiRefer
         // If no definitions found by IRI, fall back to matching literal text if it's a CURIE
         if (results.isEmpty()) {
             val elementText = element.text
-            val curies = PsiTreeUtil.findChildrenOfType(file, AmsCurie::class.java)
-            return curies
-                .filter { it !== element && it.text == elementText && it.isDef() }
+            val definitionsByText = file.getDefinitionsByText()[elementText] ?: emptyList()
+            return definitionsByText
+                .filter { it !== element }
                 .map { PsiElementResolveResult(it) }
                 .toTypedArray()
         }

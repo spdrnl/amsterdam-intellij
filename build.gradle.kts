@@ -49,6 +49,12 @@ repositories {
 }
 
 // Dependencies are managed with Gradle version catalog - read more: https://docs.gradle.org/current/userguide/version_catalogs.html
+configurations {
+    implementation {
+        exclude(group = "org.antlr", module = "antlr4")
+        exclude(group = "org.antlr", module = "antlr-runtime")
+    }
+}
 dependencies {
     "antlr"(libs.antlr4)
     implementation(libs.antlr4.runtime)
