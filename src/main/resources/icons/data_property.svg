@@ -1,4 +1,6 @@
 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-<rect x="2.5" y="2.5" width="11" height="11" rx="5.5" fill="#FFF7F7" stroke="#DB3B4B"/>
-<text x="8.3" y="11.2" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" fill="#DB3B4B" font-weight="bold">D</text>
+    <rect x="2.5" y="2.5" width="11" height="11" rx="5.5" fill="#FFF7F7" stroke="#DB3B4B"/>
+    <text x="8.3" y="11.2" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" fill="#DB3B4B"
+          font-weight="bold">D
+    </text>
 </svg>

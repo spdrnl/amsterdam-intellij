@@ -5,7 +5,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFileFactory
 import com.intellij.psi.util.PsiTreeUtil
-import org.antlr.intellij.adaptor.psi.ANTLRPsiNode
 
 object AmsElementFactory {
     fun createPrefixHeader(project: Project, name: String): AmsPrefixHeader {
@@ -20,6 +19,7 @@ object AmsElementFactory {
 
     fun createFile(project: Project, text: String): com.github.spdrnl.amsterdamintellij.lang.amsFile {
         val name = "dummy.ams"
-        return PsiFileFactory.getInstance(project).createFileFromText(name, amsLanguage.INSTANCE, text) as com.github.spdrnl.amsterdamintellij.lang.amsFile
+        return PsiFileFactory.getInstance(project)
+            .createFileFromText(name, amsLanguage.INSTANCE, text) as com.github.spdrnl.amsterdamintellij.lang.amsFile
     }
 }

@@ -30,7 +30,8 @@ class AmsSyntaxHighlighter : SyntaxHighlighterBase() {
         val IRI = createTextAttributesKey("AMS_IRI", DefaultLanguageHighlighterColors.STRING)
         val DEFAULT_TEXT = createTextAttributesKey("AMS_DEFAULT_TEXT")
 
-        val SEMANTIC_LABEL = createTextAttributesKey("AMS_SEMANTIC_LABEL", DefaultLanguageHighlighterColors.STATIC_FIELD)
+        val SEMANTIC_LABEL =
+            createTextAttributesKey("AMS_SEMANTIC_LABEL", DefaultLanguageHighlighterColors.STATIC_FIELD)
         val SEMANTIC_ID = createTextAttributesKey("AMS_SEMANTIC_ID", DefaultLanguageHighlighterColors.METADATA)
         val CLASS_KW = createTextAttributesKey("AMS_CLASS_KW", DefaultLanguageHighlighterColors.KEYWORD)
         val PROP_KW = createTextAttributesKey("AMS_PROP_KW", DefaultLanguageHighlighterColors.KEYWORD)
@@ -66,9 +67,9 @@ class AmsSyntaxHighlighter : SyntaxHighlighterBase() {
             OwlDslLexer.DISJOINT_DATA_PROPERTIES_KW, OwlDslLexer.ANNOTATION_PROPERTY_KW, OwlDslLexer.ANNOTATION_KW,
             OwlDslLexer.DATATYPE_KW, OwlDslLexer.DATATYPE_DEFINITION_KW, OwlDslLexer.SUB_PROPERTY_CHAIN_KW,
             OwlDslLexer.SUBPROPERTY_CHAIN_KW, OwlDslLexer.CHAIN_KW -> arrayOf(PROP_KW)
-            
+
             OwlDslLexer.INDIVIDUAL_KW -> arrayOf(INDIVIDUAL_KW)
-            
+
             OwlDslLexer.CLASS_KW -> arrayOf(CLASS_KW)
 
             OwlDslLexer.PREFIX_KW, OwlDslLexer.ONTOLOGY_KW, OwlDslLexer.VERSION_IRI_KW,

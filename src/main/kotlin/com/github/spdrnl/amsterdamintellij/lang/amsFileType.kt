@@ -1,7 +1,6 @@
 package com.github.spdrnl.amsterdamintellij.lang
 
 import com.intellij.openapi.fileTypes.LanguageFileType
-import com.intellij.openapi.util.IconLoader
 import javax.swing.Icon
 
 class amsFileType : LanguageFileType(amsLanguage.INSTANCE) {

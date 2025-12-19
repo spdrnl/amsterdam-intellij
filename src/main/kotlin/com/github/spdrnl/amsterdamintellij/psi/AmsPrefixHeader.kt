@@ -14,7 +14,7 @@ class AmsPrefixHeader(node: ASTNode) : ANTLRPsiNode(node), PsiNameIdentifierOwne
         val tokenTypes = PSIElementTypeFactory.getTokenIElementTypes(amsLanguage.INSTANCE)
         val prefixName = node.findChildByType(tokenTypes[OwlDslLexer.PREFIX_NAME])
         if (prefixName != null) return prefixName.psi
-        
+
         val colon = node.findChildByType(tokenTypes[OwlDslLexer.COLON])
         return colon?.psi
     }
@@ -39,6 +39,6 @@ class AmsPrefixHeader(node: ASTNode) : ANTLRPsiNode(node), PsiNameIdentifierOwne
     }
 
     override fun getReference(): PsiReference? = null
-    
+
     override fun getReferences(): Array<PsiReference> = PsiReference.EMPTY_ARRAY
 }

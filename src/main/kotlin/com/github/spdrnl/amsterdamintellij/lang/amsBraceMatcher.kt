@@ -1,10 +1,10 @@
 package com.github.spdrnl.amsterdamintellij.lang
 
+import com.github.spdrnl.amsterdamintellij.parser.OwlDslLexer
 import com.intellij.lang.BracePair
 import com.intellij.lang.PairedBraceMatcher
 import com.intellij.psi.PsiFile
 import com.intellij.psi.tree.IElementType
-import com.github.spdrnl.amsterdamintellij.parser.OwlDslLexer
 import org.antlr.intellij.adaptor.lexer.PSIElementTypeFactory
 
 class amsBraceMatcher : PairedBraceMatcher {

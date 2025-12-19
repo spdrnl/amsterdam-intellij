@@ -30,6 +30,7 @@ class amsBreadcrumbsProvider : BreadcrumbsProvider {
                     OwlDslParser.RULE_primaryClassExpr,
                     OwlDslParser.RULE_boolClassExpr,
                     OwlDslParser.RULE_classExpr -> true
+
                     else -> false
                 }
             }
@@ -50,7 +51,7 @@ class amsBreadcrumbsProvider : BreadcrumbsProvider {
     override fun getElementIcon(element: PsiElement): Icon? {
         return if (element is ANTLRPsiNode) {
             val structureElement = amsStructureViewElement(element)
-            structureElement.getPresentation().getIcon(false)
+            structureElement.presentation.getIcon(false)
         } else {
             null
         }

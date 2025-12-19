@@ -7,8 +7,9 @@ import org.antlr.intellij.adaptor.psi.ANTLRPsiNode
 
 object AmsPsiUtil {
     fun findRecursively(node: PsiElement, ruleIndex: Int): PsiElement? {
-        if (node is ANTLRPsiNode && node.node.elementType is RuleIElementType && 
-            (node.node.elementType as RuleIElementType).ruleIndex == ruleIndex) {
+        if (node is ANTLRPsiNode && node.node.elementType is RuleIElementType &&
+            (node.node.elementType as RuleIElementType).ruleIndex == ruleIndex
+        ) {
             return node
         }
         for (child in node.children) {
@@ -31,7 +32,7 @@ object AmsPsiUtil {
 
     fun getAxiomLabel(axiom: PsiElement): String {
         if (axiom !is ANTLRPsiNode) return axiom.text.take(20)
-        
+
         val label = findLabelAnnotation(axiom)
         if (label != null) return label
 
@@ -41,17 +42,18 @@ object AmsPsiUtil {
 
     fun findLabelAnnotation(node: PsiElement, lang: String? = null): String? = findAnnotation(node, "rdfs:label", lang)
 
-    fun findCommentAnnotation(node: PsiElement, lang: String? = null): String? = findAnnotation(node, "rdfs:comment", lang)
+    fun findCommentAnnotation(node: PsiElement, lang: String? = null): String? =
+        findAnnotation(node, "rdfs:comment", lang)
 
     private fun findAnnotation(node: PsiElement, propName: String, requestedLang: String? = null): String? {
         val candidates = findAllAnnotations(node, propName)
-        
+
         if (requestedLang != null) {
             candidates.find { it.second == requestedLang }?.let { return it.first }
         }
-        
+
         if (candidates.isEmpty()) return null
-        
+
         // 1. Match @en
         candidates.find { it.second == "@en" }?.let { return it.first }
         // 2. Any other label
@@ -66,36 +68,42 @@ object AmsPsiUtil {
             if (current is ANTLRPsiNode && current.node.elementType is RuleIElementType) {
                 val type = (current.node.elementType as RuleIElementType).ruleIndex
                 if (type == OwlDslParser.RULE_annotatedAxiom || type == OwlDslParser.RULE_annotatedOntologyHeader) {
-                    val blocks = current.children.filter { 
-                        it is ANTLRPsiNode && it.node.elementType is RuleIElementType && 
-                        (it.node.elementType as RuleIElementType).ruleIndex == OwlDslParser.RULE_annotationBlock 
+                    val blocks = current.children.filter {
+                        it is ANTLRPsiNode && it.node.elementType is RuleIElementType &&
+                                (it.node.elementType as RuleIElementType).ruleIndex == OwlDslParser.RULE_annotationBlock
                     }
                     for (block in blocks) {
-                        val list = block.children.find { 
-                            it is ANTLRPsiNode && it.node.elementType is RuleIElementType && 
-                            (it.node.elementType as RuleIElementType).ruleIndex == OwlDslParser.RULE_annotationList 
+                        val list = block.children.find {
+                            it is ANTLRPsiNode && it.node.elementType is RuleIElementType &&
+                                    (it.node.elementType as RuleIElementType).ruleIndex == OwlDslParser.RULE_annotationList
                         }
-                        val annotations = list?.children?.filter { 
-                            it is ANTLRPsiNode && it.node.elementType is RuleIElementType && 
-                            (it.node.elementType as RuleIElementType).ruleIndex == OwlDslParser.RULE_annotation 
+                        val annotations = list?.children?.filter {
+                            it is ANTLRPsiNode && it.node.elementType is RuleIElementType &&
+                                    (it.node.elementType as RuleIElementType).ruleIndex == OwlDslParser.RULE_annotation
                         } ?: emptyList()
 
                         for (ann in annotations) {
-                            val propId = ann.children.find { 
-                                it is ANTLRPsiNode && it.node.elementType is RuleIElementType && 
-                                (it.node.elementType as RuleIElementType).ruleIndex == OwlDslParser.RULE_entityUsage 
+                            val propId = ann.children.find {
+                                it is ANTLRPsiNode && it.node.elementType is RuleIElementType &&
+                                        (it.node.elementType as RuleIElementType).ruleIndex == OwlDslParser.RULE_entityUsage
                             }
                             if (propId?.text?.endsWith(propName) == true || propId?.text == propName) {
-                                val literal = ann.children.find { 
-                                    it is ANTLRPsiNode && it.node.elementType is RuleIElementType && 
-                                    (it.node.elementType as RuleIElementType).ruleIndex == OwlDslParser.RULE_literal 
+                                val literal = ann.children.find {
+                                    it is ANTLRPsiNode && it.node.elementType is RuleIElementType &&
+                                            (it.node.elementType as RuleIElementType).ruleIndex == OwlDslParser.RULE_literal
                                 }
                                 if (literal != null) {
-                                    val langTag = literal.children.find { it.node.elementType.toString().contains("LANGTAG") }?.text
+                                    val langTag = literal.children.find {
+                                        it.node.elementType.toString().contains("LANGTAG")
+                                    }?.text
                                     val rawText = literal.text
                                     val content = when {
-                                        rawText.startsWith("\"\"\"") -> rawText.substringAfter("\"\"\"").substringBeforeLast("\"\"\"")
-                                        rawText.startsWith("\"") -> rawText.substringAfter("\"").substringBeforeLast("\"")
+                                        rawText.startsWith("\"\"\"") -> rawText.substringAfter("\"\"\"")
+                                            .substringBeforeLast("\"\"\"")
+
+                                        rawText.startsWith("\"") -> rawText.substringAfter("\"")
+                                            .substringBeforeLast("\"")
+
                                         else -> rawText
                                     }
                                     candidates.add(content to langTag)
@@ -121,11 +129,11 @@ object AmsPsiUtil {
             OwlDslParser.RULE_subPropertyChainAxiom -> OwlDslParser.RULE_propId
             else -> null
         }
-        
+
         if (targetRule != null) {
             val found = findRecursively(node, targetRule)
             if (found != null) {
-                 return found.children.firstOrNull() ?: found
+                return found.children.firstOrNull() ?: found
             }
         }
 
@@ -142,7 +150,8 @@ object AmsPsiUtil {
                     type == OwlDslParser.RULE_dataPropertyAxiom ||
                     type == OwlDslParser.RULE_annotationPropertyAxiom ||
                     type == OwlDslParser.RULE_datatypeAxiom ||
-                    type == OwlDslParser.RULE_individualAxiom) {
+                    type == OwlDslParser.RULE_individualAxiom
+                ) {
                     return p
                 }
             }

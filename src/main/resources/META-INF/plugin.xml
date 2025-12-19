@@ -20,7 +20,7 @@
                                        implementationClass="com.github.spdrnl.amsterdamintellij.lang.AmsSyntaxHighlighterFactory"/>
         <colorSettingsPage implementation="com.github.spdrnl.amsterdamintellij.lang.AmsColorSettingsPage"/>
         <lang.psiStructureViewFactory language="ams"
-                                       implementationClass="com.github.spdrnl.amsterdamintellij.lang.amsStructureViewFactory"/>
+                                      implementationClass="com.github.spdrnl.amsterdamintellij.lang.amsStructureViewFactory"/>
         <lang.braceMatcher language="ams"
                            implementationClass="com.github.spdrnl.amsterdamintellij.lang.amsBraceMatcher"/>
         <annotator language="ams"
@@ -28,17 +28,21 @@
         <breadcrumbsInfoProvider implementation="com.github.spdrnl.amsterdamintellij.lang.amsBreadcrumbsProvider"/>
         <lang.formatter language="ams"
                         implementationClass="com.github.spdrnl.amsterdamintellij.lang.AmsFormattingModelBuilder"/>
-        <codeStyleSettingsProvider implementation="com.github.spdrnl.amsterdamintellij.lang.AmsCodeStyleSettingsProvider"/>
-        <langCodeStyleSettingsProvider implementation="com.github.spdrnl.amsterdamintellij.lang.AmsLanguageCodeStyleSettingsProvider"/>
+        <codeStyleSettingsProvider
+                implementation="com.github.spdrnl.amsterdamintellij.lang.AmsCodeStyleSettingsProvider"/>
+        <langCodeStyleSettingsProvider
+                implementation="com.github.spdrnl.amsterdamintellij.lang.AmsLanguageCodeStyleSettingsProvider"/>
         <gotoSymbolContributor implementation="com.github.spdrnl.amsterdamintellij.lang.AmsSymbolContributor"/>
-        <elementDescriptionProvider implementation="com.github.spdrnl.amsterdamintellij.lang.AmsElementDescriptionProvider"/>
+        <elementDescriptionProvider
+                implementation="com.github.spdrnl.amsterdamintellij.lang.AmsElementDescriptionProvider"/>
         <lang.findUsagesProvider language="ams"
-                                implementationClass="com.github.spdrnl.amsterdamintellij.lang.AmsFindUsagesProvider"/>
+                                 implementationClass="com.github.spdrnl.amsterdamintellij.lang.AmsFindUsagesProvider"/>
         <lang.documentationProvider language="ams"
                                     implementationClass="com.github.spdrnl.amsterdamintellij.lang.AmsDocumentationProvider"/>
 
-        <defaultLiveTemplatesProvider implementation="com.github.spdrnl.amsterdamintellij.lang.AmsLiveTemplatesProvider"/>
-        <liveTemplateContext contextId="AMSTERDAM" implementation="com.github.spdrnl.amsterdamintellij.lang.AmsContext"/>
+        <defaultLiveTemplates file="/liveTemplates/Amsterdam.xml"/>
+        <liveTemplateContext contextId="AMSTERDAM"
+                             implementation="com.github.spdrnl.amsterdamintellij.lang.AmsContext"/>
 
         <codeInsight.inlayProvider language="ams"
                                    implementationClass="com.github.spdrnl.amsterdamintellij.lang.AmsInlayHintsProvider"/>

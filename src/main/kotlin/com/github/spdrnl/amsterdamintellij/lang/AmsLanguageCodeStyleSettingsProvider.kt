@@ -3,7 +3,6 @@ package com.github.spdrnl.amsterdamintellij.lang
 import com.intellij.application.options.IndentOptionsEditor
 import com.intellij.application.options.SmartIndentOptionsEditor
 import com.intellij.psi.codeStyle.CodeStyleSettingsCustomizable
-import com.intellij.psi.codeStyle.CodeStyleSettingsCustomizableOptions
 import com.intellij.psi.codeStyle.LanguageCodeStyleSettingsProvider
 
 class AmsLanguageCodeStyleSettingsProvider : LanguageCodeStyleSettingsProvider() {
@@ -14,7 +13,12 @@ class AmsLanguageCodeStyleSettingsProvider : LanguageCodeStyleSettingsProvider()
         settingsType: SettingsType
     ) {
         if (settingsType == SettingsType.SPACING_SETTINGS) {
-            consumer.showCustomOption(AmsCodeStyleSettings::class.java, "SPACE_BEFORE_COLON", "Space before colon", "Other")
+            consumer.showCustomOption(
+                AmsCodeStyleSettings::class.java,
+                "SPACE_BEFORE_COLON",
+                "Space before colon",
+                "Other"
+            )
         } else if (settingsType == SettingsType.BLANK_LINES_SETTINGS) {
             consumer.showStandardOptions("KEEP_BLANK_LINES_IN_CODE")
         }

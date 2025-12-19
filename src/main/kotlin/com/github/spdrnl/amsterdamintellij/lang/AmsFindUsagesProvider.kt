@@ -1,5 +1,6 @@
 package com.github.spdrnl.amsterdamintellij.lang
 
+import com.github.spdrnl.amsterdamintellij.parser.OwlDslLexer
 import com.github.spdrnl.amsterdamintellij.parser.OwlDslParser
 import com.github.spdrnl.amsterdamintellij.psi.AmsCurie
 import com.intellij.lang.cacheBuilder.DefaultWordsScanner
@@ -9,14 +10,18 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.tree.TokenSet
 import org.antlr.intellij.adaptor.lexer.PSIElementTypeFactory
 import org.antlr.intellij.adaptor.lexer.RuleIElementType
-import com.github.spdrnl.amsterdamintellij.parser.OwlDslLexer
 
 class AmsFindUsagesProvider : FindUsagesProvider {
-    override fun getWordsScanner(): WordsScanner? {
+    override fun getWordsScanner(): WordsScanner {
         val tokenTypes = PSIElementTypeFactory.getTokenIElementTypes(amsLanguage.INSTANCE)
         return DefaultWordsScanner(
             amsLexerAdapter(),
-            TokenSet.create(tokenTypes[OwlDslLexer.PREFIX_NAME], tokenTypes[OwlDslLexer.CURIE], tokenTypes[OwlDslLexer.CURIE_EMPTY], tokenTypes[OwlDslLexer.IRI]),
+            TokenSet.create(
+                tokenTypes[OwlDslLexer.PREFIX_NAME],
+                tokenTypes[OwlDslLexer.CURIE],
+                tokenTypes[OwlDslLexer.CURIE_EMPTY],
+                tokenTypes[OwlDslLexer.IRI]
+            ),
             TokenSet.create(tokenTypes[OwlDslLexer.LINE_COMMENT], tokenTypes[OwlDslLexer.BLOCK_COMMENT]),
             TokenSet.create(tokenTypes[OwlDslLexer.STRING3], tokenTypes[OwlDslLexer.STRING])
         )
@@ -39,7 +44,7 @@ class AmsFindUsagesProvider : FindUsagesProvider {
                 OwlDslParser.RULE_namespaceIRI -> return "prefix"
                 OwlDslParser.RULE_entityId -> return "entity"
             }
-            
+
             var current: PsiElement? = element.parent
             while (current != null) {
                 val type = (current.node.elementType as? RuleIElementType)?.ruleIndex

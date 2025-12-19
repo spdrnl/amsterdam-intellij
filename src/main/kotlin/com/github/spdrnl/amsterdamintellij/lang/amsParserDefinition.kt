@@ -1,6 +1,5 @@
 package com.github.spdrnl.amsterdamintellij.lang
 
-import com.github.spdrnl.amsterdamintellij.parser.OwlDslLexer
 import com.github.spdrnl.amsterdamintellij.parser.OwlDslParser
 import com.github.spdrnl.amsterdamintellij.psi.AmsCurie
 import com.github.spdrnl.amsterdamintellij.psi.AmsPrefixHeader
@@ -23,26 +22,46 @@ class amsParserDefinition : ParserDefinition {
     }
 
     init {
-        PSIElementTypeFactory.defineLanguageIElementTypes(amsLanguage.INSTANCE, OwlDslParser.VOCABULARY, OwlDslParser.ruleNames)
+        PSIElementTypeFactory.defineLanguageIElementTypes(
+            amsLanguage.INSTANCE,
+            OwlDslParser.VOCABULARY,
+            OwlDslParser.ruleNames
+        )
     }
 
     override fun createLexer(project: Project?): Lexer = amsLexerAdapter()
-    
-    override fun getWhitespaceTokens(): TokenSet = PSIElementTypeFactory.createTokenSet(amsLanguage.INSTANCE, com.github.spdrnl.amsterdamintellij.parser.OwlDslLexer.WS)
+
+    override fun getWhitespaceTokens(): TokenSet = PSIElementTypeFactory.createTokenSet(
+        amsLanguage.INSTANCE,
+        com.github.spdrnl.amsterdamintellij.parser.OwlDslLexer.WS
+    )
 
     override fun createParser(project: Project?): PsiParser {
-        return object : org.antlr.intellij.adaptor.parser.ANTLRParserAdaptor(amsLanguage.INSTANCE, com.github.spdrnl.amsterdamintellij.parser.OwlDslParser(null)) {
-            override fun parse(parser: org.antlr.v4.runtime.Parser?, root: com.intellij.psi.tree.IElementType?): org.antlr.v4.runtime.tree.ParseTree {
-                return (parser as com.github.spdrnl.amsterdamintellij.parser.OwlDslParser).ontology()
+        return object : org.antlr.intellij.adaptor.parser.ANTLRParserAdaptor(
+            amsLanguage.INSTANCE,
+            OwlDslParser(null)
+        ) {
+            override fun parse(
+                parser: org.antlr.v4.runtime.Parser?,
+                root: com.intellij.psi.tree.IElementType?
+            ): org.antlr.v4.runtime.tree.ParseTree {
+                return (parser as OwlDslParser).ontology()
             }
         }
     }
 
     override fun getFileNodeType(): IFileElementType = FILE
 
-    override fun getCommentTokens(): TokenSet = PSIElementTypeFactory.createTokenSet(amsLanguage.INSTANCE, com.github.spdrnl.amsterdamintellij.parser.OwlDslLexer.LINE_COMMENT, com.github.spdrnl.amsterdamintellij.parser.OwlDslLexer.BLOCK_COMMENT)
+    override fun getCommentTokens(): TokenSet = PSIElementTypeFactory.createTokenSet(
+        amsLanguage.INSTANCE,
+        com.github.spdrnl.amsterdamintellij.parser.OwlDslLexer.LINE_COMMENT,
+        com.github.spdrnl.amsterdamintellij.parser.OwlDslLexer.BLOCK_COMMENT
+    )
 
-    override fun getStringLiteralElements(): TokenSet = PSIElementTypeFactory.createTokenSet(amsLanguage.INSTANCE, com.github.spdrnl.amsterdamintellij.parser.OwlDslLexer.STRING)
+    override fun getStringLiteralElements(): TokenSet = PSIElementTypeFactory.createTokenSet(
+        amsLanguage.INSTANCE,
+        com.github.spdrnl.amsterdamintellij.parser.OwlDslLexer.STRING
+    )
 
     override fun createElement(node: ASTNode?): PsiElement {
         val elementType = node!!.elementType
@@ -57,10 +76,11 @@ class amsParserDefinition : ParserDefinition {
                 OwlDslParser.RULE_entityId,
                 OwlDslParser.RULE_fullIRI,
                 OwlDslParser.RULE_namespaceIRI -> return AmsCurie(node)
+
                 OwlDslParser.RULE_classAxiom -> return org.antlr.intellij.adaptor.psi.ANTLRPsiNode(node)
             }
         }
-        
+
         return org.antlr.intellij.adaptor.psi.ANTLRPsiNode(node)
     }
 

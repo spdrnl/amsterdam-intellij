@@ -1,12 +1,11 @@
 package com.github.spdrnl.amsterdamintellij.lang
 
+import com.github.spdrnl.amsterdamintellij.parser.OwlDslParser
 import com.github.spdrnl.amsterdamintellij.psi.AmsCurie
 import com.intellij.lang.documentation.AbstractDocumentationProvider
 import com.intellij.psi.PsiElement
-import com.intellij.psi.util.PsiTreeUtil
 import org.antlr.intellij.adaptor.lexer.RuleIElementType
 import org.antlr.intellij.adaptor.psi.ANTLRPsiNode
-import com.github.spdrnl.amsterdamintellij.parser.OwlDslParser
 
 class AmsDocumentationProvider : AbstractDocumentationProvider() {
     override fun generateDoc(element: PsiElement?, originalElement: PsiElement?): String? {
@@ -18,22 +17,22 @@ class AmsDocumentationProvider : AbstractDocumentationProvider() {
                 if (type != null) {
                     sb.append("<b>$type</b><br/>")
                 }
-                
+
                 val label = AmsPsiUtil.findLabelAnnotation(axiom)
                 if (label != null) {
                     sb.append("<b>Label:</b> $label<br/>")
                 }
-                
+
                 val comment = AmsPsiUtil.findCommentAnnotation(axiom)
                 if (comment != null) {
                     sb.append("<br/>$comment")
                 }
-                
+
                 val iri = element.getFullIri()
                 if (iri != null) {
                     sb.append("<br/><br/><icon src='AllIcons.Nodes.PpLib'/> <i>$iri</i>")
                 }
-                
+
                 return if (sb.isNotEmpty()) sb.toString() else null
             }
         }
@@ -47,7 +46,7 @@ class AmsDocumentationProvider : AbstractDocumentationProvider() {
                 val type = getAxiomType(axiom)
                 val label = AmsPsiUtil.findLabelAnnotation(axiom)
                 val iri = element.getFullIri()
-                
+
                 return buildString {
                     if (type != null) append("[$type] ")
                     if (label != null) append("\"$label\" ")

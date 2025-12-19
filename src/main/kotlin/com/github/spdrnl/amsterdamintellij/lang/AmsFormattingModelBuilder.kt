@@ -5,7 +5,6 @@ import com.github.spdrnl.amsterdamintellij.parser.OwlDslParser
 import com.intellij.formatting.*
 import com.intellij.lang.ASTNode
 import com.intellij.openapi.util.TextRange
-import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.codeStyle.CodeStyleSettings
 import com.intellij.psi.tree.TokenSet
@@ -116,7 +115,7 @@ class AmsFormattingBlock(
     private fun computeIndent(child: ASTNode): Indent? {
         val parent = child.treeParent ?: return Indent.getNoneIndent()
         val parentType = parent.elementType
-        
+
         if (parentType is RuleIElementType) {
             when (parentType.ruleIndex) {
                 OwlDslParser.RULE_classSubOrEqAxiom,
@@ -127,7 +126,7 @@ class AmsFormattingBlock(
                     // Elements after the first line (the declaration) should be indented
                     // In many axioms, the first few children are keyword, maybe comment, and ID.
                     // Clauses usually come after these.
-                    
+
                     // Simple heuristic: if it's not the first few children, indent it.
                     // Or more specifically, if it's a clause.
                     val childType = child.elementType
@@ -141,7 +140,7 @@ class AmsFormattingBlock(
                             OwlDslParser.RULE_propAssertionList -> return Indent.getNormalIndent()
                         }
                     }
-                    
+
                     // Also indent if it follows a semicolon
                     var prev = child.treePrev
                     while (prev != null && prev.elementType === com.intellij.psi.TokenType.WHITE_SPACE) {
@@ -153,7 +152,7 @@ class AmsFormattingBlock(
                 }
             }
         }
-        
+
         return Indent.getNoneIndent()
     }
 

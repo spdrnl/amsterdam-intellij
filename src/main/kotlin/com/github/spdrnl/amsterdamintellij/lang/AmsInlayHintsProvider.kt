@@ -2,8 +2,6 @@ package com.github.spdrnl.amsterdamintellij.lang
 
 import com.github.spdrnl.amsterdamintellij.psi.AmsCurie
 import com.intellij.codeInsight.hints.*
-import com.intellij.codeInsight.hints.presentation.InlayPresentation
-import com.intellij.codeInsight.hints.presentation.PresentationFactory
 import com.intellij.openapi.editor.Editor
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
@@ -39,7 +37,7 @@ class AmsInlayHintsProvider : InlayHintsProvider<AmsInlayHintsProvider.Settings>
                     val definition = element.references
                         .filterIsInstance<com.github.spdrnl.amsterdamintellij.psi.AmsCurieLocalNameReference>()
                         .firstOrNull()?.resolve() ?: if (element.isDef()) element else null
-                    
+
                     if (definition != null) {
                         val axiom = AmsPsiUtil.findAxiom(definition)
                         if (axiom != null) {

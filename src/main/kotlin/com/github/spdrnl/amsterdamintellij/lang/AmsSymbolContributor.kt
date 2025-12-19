@@ -4,8 +4,6 @@ import com.github.spdrnl.amsterdamintellij.psi.AmsCurie
 import com.intellij.navigation.ChooseByNameContributor
 import com.intellij.navigation.NavigationItem
 import com.intellij.openapi.project.Project
-import com.intellij.psi.PsiElement
-import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.search.FilenameIndex
 import com.intellij.psi.search.GlobalSearchScope
 
@@ -23,7 +21,12 @@ class AmsSymbolContributor : ChooseByNameContributor {
         return curies.toTypedArray()
     }
 
-    override fun getItemsByName(name: String, pattern: String, project: Project, includeNonProjectItems: Boolean): Array<NavigationItem> {
+    override fun getItemsByName(
+        name: String,
+        pattern: String,
+        project: Project,
+        includeNonProjectItems: Boolean
+    ): Array<NavigationItem> {
         val items = mutableListOf<NavigationItem>()
         val files = FilenameIndex.getAllFilesByExt(project, "ams", GlobalSearchScope.allScope(project))
         for (file in files) {
@@ -40,8 +43,8 @@ class AmsSymbolContributor : ChooseByNameContributor {
 }
 
 class AmsNavigationItem(private val element: AmsCurie) : NavigationItem {
-    override fun getName(): String? = AmsPsiUtil.getAxiomLabel(AmsPsiUtil.findAxiom(element) ?: element)
-    override fun getPresentation() = amsStructureViewElement(AmsPsiUtil.findAxiom(element) ?: element).getPresentation()
+    override fun getName(): String = AmsPsiUtil.getAxiomLabel(AmsPsiUtil.findAxiom(element) ?: element)
+    override fun getPresentation() = amsStructureViewElement(AmsPsiUtil.findAxiom(element) ?: element).presentation
     override fun navigate(requestFocus: Boolean) = element.navigate(requestFocus)
     override fun canNavigate(): Boolean = element.canNavigate()
     override fun canNavigateToSource(): Boolean = element.canNavigateToSource()

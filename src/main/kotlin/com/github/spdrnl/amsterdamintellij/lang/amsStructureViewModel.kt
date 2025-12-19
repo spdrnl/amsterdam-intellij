@@ -7,7 +7,6 @@ import com.intellij.ide.util.treeView.smartTree.*
 import com.intellij.openapi.editor.Editor
 import com.intellij.psi.PsiFile
 import com.intellij.util.PlatformIcons
-import javax.swing.Icon
 
 class amsStructureViewModel(editor: Editor?, psiFile: PsiFile) :
     StructureViewModelBase(psiFile, editor, amsStructureViewElement(psiFile)),
@@ -82,7 +81,7 @@ class amsStructureViewModel(editor: Editor?, psiFile: PsiFile) :
             override fun getPresentation(): ActionPresentation = ActionPresentationData(
                 "Hide Individuals",
                 "Hide individuals",
-                com.intellij.util.PlatformIcons.ANONYMOUS_CLASS_ICON
+                PlatformIcons.ANONYMOUS_CLASS_ICON
             )
         }
 

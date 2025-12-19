@@ -1,7 +1,6 @@
 package com.github.spdrnl.amsterdamintellij.lang
 
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
-import com.intellij.codeInsight.completion.CompletionType
 
 class AmsCompletionTest : BasePlatformTestCase() {
 
@@ -43,7 +42,7 @@ class AmsCompletionTest : BasePlatformTestCase() {
     fun testSynonymCompletion() {
         // Typing "subclass" should suggest "subClassOf" because it's part of "is subclass of"
         myFixture.configureByText("test.ams", "Class :Person is subclass<caret>")
-        
+
         myFixture.completeBasic()
         val elements = myFixture.lookupElements
         assertNotNull(elements)
@@ -91,10 +90,10 @@ class AmsCompletionTest : BasePlatformTestCase() {
         myFixture.completeBasic()
         val lookupElements = myFixture.lookupElements
         assertNotNull(lookupElements)
-        
+
         val personItem = lookupElements!!.find { it.lookupString == ":Person" }
         assertNotNull("Should find :Person in lookup items", personItem)
-        
+
         // Check if "Human Being" is one of the lookup strings
         val lookupStrings = personItem!!.allLookupStrings
         assertTrue("Should contain 'Human Being' as a lookup string", lookupStrings.contains("Human Being"))

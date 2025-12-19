@@ -35,34 +35,35 @@ class AmsCompletionContributor : CompletionContributor() {
                     fun addKeywords(keywords: List<String>) {
                         val matcher = result.prefixMatcher
                         val prefix = matcher.prefix
-                        
-                        val allSubclassMatch = subclassSynonyms.any { s -> 
+
+                        val allSubclassMatch = subclassSynonyms.any { s ->
                             matcher.prefixMatches(s) || (prefix.isNotEmpty() && s.contains(prefix, ignoreCase = true))
                         }
-                        val allSubpropMatch = subpropertySynonyms.any { s -> 
+                        val allSubpropMatch = subpropertySynonyms.any { s ->
                             matcher.prefixMatches(s) || (prefix.isNotEmpty() && s.contains(prefix, ignoreCase = true))
                         }
 
                         keywords.forEach { kw ->
                             val builder = LookupElementBuilder.create(kw)
-                            val isMatch = matcher.prefixMatches(kw) || 
-                                          (kw in subclassSynonyms && allSubclassMatch) ||
-                                          (kw in subpropertySynonyms && allSubpropMatch)
+                            val isMatch = matcher.prefixMatches(kw) ||
+                                    (kw in subclassSynonyms && allSubclassMatch) ||
+                                    (kw in subpropertySynonyms && allSubpropMatch)
 
                             if (isMatch) {
                                 if (!matcher.prefixMatches(kw)) {
-                                     result.withPrefixMatcher(PlainPrefixMatcher(prefix, true)).addElement(builder.withLookupString(prefix))
+                                    result.withPrefixMatcher(PlainPrefixMatcher(prefix, true))
+                                        .addElement(builder.withLookupString(prefix))
                                 } else {
-                                     result.addElement(builder)
+                                    result.addElement(builder)
                                 }
                             }
                         }
                     }
-                    
+
                     // Top-level keywords
                     if (parent is amsFile || (parent is ANTLRPsiNode && (parent.node.elementType as? RuleIElementType)?.ruleIndex == OwlDslParser.RULE_ontology)) {
                         val topLevelKeywords = listOf(
-                            "Prefix", "Ontology", "Class", "ObjectProperty", "DataProperty", 
+                            "Prefix", "Ontology", "Class", "ObjectProperty", "DataProperty",
                             "AnnotationProperty", "Individual", "Datatype", "AllDisjointClasses"
                         )
                         addKeywords(topLevelKeywords)
@@ -73,11 +74,16 @@ class AmsCompletionContributor : CompletionContributor() {
                             val prevAxiom = PsiTreeUtil.getParentOfType(prev, ANTLRPsiNode::class.java)?.let {
                                 AmsPsiUtil.findAxiom(it)
                             } as? ANTLRPsiNode
-                            
+
                             if (prevAxiom != null) {
                                 val ruleIndex = (prevAxiom.node.elementType as? RuleIElementType)?.ruleIndex
                                 if (ruleIndex == OwlDslParser.RULE_classAxiom) {
-                                    val classKeywords = subclassSynonyms + listOf("equivalentTo", "disjointWith", "disjointUnionOf", "hasKey")
+                                    val classKeywords = subclassSynonyms + listOf(
+                                        "equivalentTo",
+                                        "disjointWith",
+                                        "disjointUnionOf",
+                                        "hasKey"
+                                    )
                                     addKeywords(classKeywords)
                                 } else if (ruleIndex == OwlDslParser.RULE_objectPropertyAxiom) {
                                     val opKeywords = subpropertySynonyms + listOf(
@@ -145,12 +151,12 @@ class AmsCompletionContributor : CompletionContributor() {
                 ) {
                     val file = parameters.originalFile as? amsFile ?: return
                     val allDefs = file.getAllDefinitions()
-                    
+
                     for (def in allDefs) {
                         val text = def.text
                         if (text != null) {
                             var builder = LookupElementBuilder.create(text)
-                            
+
                             // Add icon and type info
                             val axiom = AmsPsiUtil.findAxiom(def)
                             if (axiom != null) {
@@ -161,7 +167,7 @@ class AmsCompletionContributor : CompletionContributor() {
                                     // Add label as lookup string to allow completion by label
                                     builder = builder.withLookupString(label)
                                 }
-                                
+
                                 // Also add all labels of this axiom as lookup strings
                                 val allLabels = AmsPsiUtil.findAllAnnotations(axiom, "rdfs:label")
                                 for (l in allLabels) {
@@ -170,7 +176,7 @@ class AmsCompletionContributor : CompletionContributor() {
                                     }
                                 }
                             }
-                            
+
                             result.addElement(builder)
                         }
                     }
@@ -178,7 +184,9 @@ class AmsCompletionContributor : CompletionContributor() {
                     // Prefix completion for CURIEs
                     val prefixMap = file.getPrefixMap()
                     for (prefix in prefixMap.keys) {
-                        result.addElement(LookupElementBuilder.create("$prefix:").withPresentableText(prefix).withTypeText("Prefix"))
+                        result.addElement(
+                            LookupElementBuilder.create("$prefix:").withPresentableText(prefix).withTypeText("Prefix")
+                        )
                     }
                 }
             }

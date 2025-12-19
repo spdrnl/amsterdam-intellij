@@ -9,7 +9,7 @@ import com.intellij.psi.codeStyle.CodeStyleSettingsProvider
 import com.intellij.psi.codeStyle.CustomCodeStyleSettings
 
 class AmsCodeStyleSettingsProvider : CodeStyleSettingsProvider() {
-    override fun createCustomSettings(settings: CodeStyleSettings): CustomCodeStyleSettings? {
+    override fun createCustomSettings(settings: CodeStyleSettings): CustomCodeStyleSettings {
         return AmsCodeStyleSettings(settings)
     }
 
