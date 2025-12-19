@@ -3,7 +3,6 @@ package com.github.spdrnl.amsterdamintellij.psi
 import com.github.spdrnl.amsterdamintellij.lang.amsFile
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.*
-import com.intellij.psi.util.PsiTreeUtil
 
 class AmsCurieLocalNameReference(element: AmsCurie, range: TextRange) : PsiReferenceBase<AmsCurie>(element, range),
     PsiPolyVariantReference {

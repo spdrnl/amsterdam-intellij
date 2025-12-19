@@ -1,7 +1,6 @@
 package com.github.spdrnl.amsterdamintellij.lang
 
 import com.github.spdrnl.amsterdamintellij.parser.OwlDslLexer
-import com.github.spdrnl.amsterdamintellij.parser.OwlDslParser
 import com.intellij.lexer.Lexer
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors
 import com.intellij.openapi.editor.colors.TextAttributesKey
@@ -9,7 +8,6 @@ import com.intellij.openapi.editor.colors.TextAttributesKey.createTextAttributes
 import com.intellij.openapi.fileTypes.SyntaxHighlighterBase
 import com.intellij.psi.tree.IElementType
 import org.antlr.intellij.adaptor.lexer.ANTLRLexerAdaptor
-import org.antlr.intellij.adaptor.lexer.PSIElementTypeFactory
 
 class AmsSyntaxHighlighter : SyntaxHighlighterBase() {
     companion object {
@@ -30,13 +28,15 @@ class AmsSyntaxHighlighter : SyntaxHighlighterBase() {
         val IRI = createTextAttributesKey("AMS_IRI", DefaultLanguageHighlighterColors.STRING)
         val DEFAULT_TEXT = createTextAttributesKey("AMS_DEFAULT_TEXT")
 
-        val ANNOTATION_MENTION = createTextAttributesKey("AMS_ANNOTATION_MENTION", DefaultLanguageHighlighterColors.FUNCTION_DECLARATION)
+        val ANNOTATION_MENTION =
+            createTextAttributesKey("AMS_ANNOTATION_MENTION", DefaultLanguageHighlighterColors.FUNCTION_DECLARATION)
 
         val SEMANTIC_LABEL =
             createTextAttributesKey("AMS_SEMANTIC_LABEL", DefaultLanguageHighlighterColors.STATIC_FIELD)
         val SEMANTIC_ID = createTextAttributesKey("AMS_SEMANTIC_ID", DefaultLanguageHighlighterColors.IDENTIFIER)
         val SEMANTIC_ID_REF = createTextAttributesKey("AMS_SEMANTIC_ID_REF", DefaultLanguageHighlighterColors.METADATA)
-        val INLAY_TEXT = createTextAttributesKey("AMS_INLAY_TEXT", DefaultLanguageHighlighterColors.INLINE_PARAMETER_HINT)
+        val INLAY_TEXT =
+            createTextAttributesKey("AMS_INLAY_TEXT", DefaultLanguageHighlighterColors.INLINE_PARAMETER_HINT)
         val CLASS_KW = createTextAttributesKey("AMS_CLASS_KW", DefaultLanguageHighlighterColors.KEYWORD)
         val PROP_KW = createTextAttributesKey("AMS_PROP_KW", DefaultLanguageHighlighterColors.KEYWORD)
         val INDIVIDUAL_KW = createTextAttributesKey("AMS_INDIVIDUAL_KW", DefaultLanguageHighlighterColors.KEYWORD)

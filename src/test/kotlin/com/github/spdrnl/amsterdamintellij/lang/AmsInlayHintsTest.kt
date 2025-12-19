@@ -105,7 +105,7 @@ class AmsInlayHintsTest : BasePlatformTestCase() {
 
         val hints = sink.getHints()
         assertTrue("Should have inlay hints from inline comment", hints.isNotEmpty())
-        
+
         // Verify the label text if possible (it's wrapped in presentations)
         // For now just checking if it exists at the right offsets
         val personUsageHint = hints.find { it.offset == text.lastIndexOf(":Person") }

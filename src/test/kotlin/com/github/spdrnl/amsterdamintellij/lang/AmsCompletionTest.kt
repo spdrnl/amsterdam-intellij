@@ -132,11 +132,14 @@ class AmsCompletionTest : BasePlatformTestCase() {
                 is subclass of bio<caret>
         """.trimIndent()
         myFixture.configureByText("test.ams", text)
-        
+
         myFixture.completeBasic()
         val strings = myFixture.lookupElementStrings
         assertNotNull(strings)
-        assertTrue("Should suggest obo:BFO_0000001 when typing its label 'biological entity'", strings!!.contains("obo:BFO_0000001"))
+        assertTrue(
+            "Should suggest obo:BFO_0000001 when typing its label 'biological entity'",
+            strings!!.contains("obo:BFO_0000001")
+        )
     }
 
     fun testExtraLetterOnCompletion() {
@@ -157,13 +160,14 @@ class AmsCompletionTest : BasePlatformTestCase() {
         val bfoItem = lookupElements!!.find { it.lookupString == "obo:BFO_0000001" }
         assertNotNull(bfoItem)
         myFixture.lookup.currentItem = bfoItem
-        
+
         myFixture.type('\n')
         val actualText = myFixture.editor.document.text
         if (!actualText.contains("is subclass of obo:BFO_0000001")) {
             println("[DEBUG_LOG] Actual text after completion:\n$actualText")
         }
-        myFixture.checkResult("""
+        myFixture.checkResult(
+            """
             Prefix obo: <http://purl.obolibrary.org/obo/> .
             Prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
             
@@ -172,6 +176,7 @@ class AmsCompletionTest : BasePlatformTestCase() {
             
             Class obo:X ;
                 is subclass of obo:BFO_0000001
-        """.trimIndent())
+        """.trimIndent()
+        )
     }
 }

@@ -38,9 +38,9 @@ class amsAnnotatorTest : BasePlatformTestCase() {
         myFixture.configureByText("test_multiple.ams", text)
         val highlights = myFixture.doHighlighting()
 
-        val idHighlights = highlights.filter { 
+        val idHighlights = highlights.filter {
             it.forcedTextAttributesKey == AmsSyntaxHighlighter.SEMANTIC_ID ||
-            it.forcedTextAttributesKey == AmsSyntaxHighlighter.SEMANTIC_ID_REF
+                    it.forcedTextAttributesKey == AmsSyntaxHighlighter.SEMANTIC_ID_REF
         }
 
         val expectedIDs = listOf("obo:BFO_0000146", "obo:BFO_0000140", "obo:BFO_0000178", "obo:BFO_0000140")

@@ -27,7 +27,7 @@ object AmsPsiUtil {
                     return node
                 }
             } else if (type is RuleIElementType) {
-                if (com.github.spdrnl.amsterdamintellij.parser.OwlDslParser.ruleNames[type.ruleIndex] == name) {
+                if (OwlDslParser.ruleNames[type.ruleIndex] == name) {
                     return node
                 }
             }
@@ -140,7 +140,8 @@ object AmsPsiUtil {
                                         val propId = ann.children.find {
                                             it is ANTLRPsiNode && (it.node.elementType as? RuleIElementType)?.ruleIndex == OwlDslParser.RULE_entityUsage
                                         }
-                                        val matchedProp = propNames.find { propId?.text?.endsWith(it) == true || propId?.text == it }
+                                        val matchedProp =
+                                            propNames.find { propId?.text?.endsWith(it) == true || propId?.text == it }
                                         if (matchedProp != null) {
                                             val literal = ann.children.find {
                                                 it is ANTLRPsiNode && (it.node.elementType as? RuleIElementType)?.ruleIndex == OwlDslParser.RULE_literal

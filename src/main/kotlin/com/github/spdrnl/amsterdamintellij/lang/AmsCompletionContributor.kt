@@ -151,7 +151,7 @@ class AmsCompletionContributor : CompletionContributor() {
                 ) {
                     val position = parameters.position
                     val file = parameters.originalFile as? amsFile ?: return
-                    
+
                     // Check if we're in a context where entity completion makes sense
                     val isEntityContext = position.parent is AmsCurie ||
                             AmsPsiUtil.findAxiom(position) != null ||
@@ -162,7 +162,7 @@ class AmsCompletionContributor : CompletionContributor() {
                     if (!isEntityContext) return
 
                     val allDefs = file.getAllDefinitions()
-                    
+
                     // Use case-insensitive matching for labels
                     val prefix = result.prefixMatcher.prefix
                     val caseInsensitiveResult = if (prefix.isNotEmpty()) {
@@ -178,11 +178,11 @@ class AmsCompletionContributor : CompletionContributor() {
                             val axiom = AmsPsiUtil.findAxiom(def)
                             if (axiom != null) {
                                 val label = AmsPsiUtil.getAxiomLabel(axiom)
-                                
+
                                 // Create a builder with the actual ID as the completion string
                                 var builder = LookupElementBuilder.create(def, text)
                                     .withIcon(amsStructureViewElement(axiom).getIcon())
-                                
+
                                 if (label != text) {
                                     builder = builder.withTailText(" ($label)", true)
                                     // Add label as lookup string to allow completion by label
@@ -190,13 +190,14 @@ class AmsCompletionContributor : CompletionContributor() {
                                 }
 
                                 // Also add all labels of this axiom as lookup strings
-                                val allLabels = AmsPsiUtil.findAllAnnotations(axiom, setOf("rdfs:label", "skos:definition"))
+                                val allLabels =
+                                    AmsPsiUtil.findAllAnnotations(axiom, setOf("rdfs:label", "skos:definition"))
                                 for (l in allLabels) {
                                     if (l.first != text && l.first != label) {
                                         builder = builder.withLookupString(l.first)
                                     }
                                 }
-                                
+
                                 caseInsensitiveResult.addElement(builder)
                             } else {
                                 // No axiom, just add the text
@@ -209,7 +210,8 @@ class AmsCompletionContributor : CompletionContributor() {
                     val prefixMap = file.getPrefixMap()
                     for (prefixName in prefixMap.keys) {
                         caseInsensitiveResult.addElement(
-                            LookupElementBuilder.create("$prefixName:").withPresentableText(prefixName).withTypeText("Prefix")
+                            LookupElementBuilder.create("$prefixName:").withPresentableText(prefixName)
+                                .withTypeText("Prefix")
                         )
                     }
                 }
@@ -219,7 +221,7 @@ class AmsCompletionContributor : CompletionContributor() {
                     while (curr != null && curr !is amsFile) {
                         if (curr is ANTLRPsiNode) {
                             val index = (curr.node.elementType as? RuleIElementType)?.ruleIndex
-                            if (index == OwlDslParser.RULE_entityUsage || 
+                            if (index == OwlDslParser.RULE_entityUsage ||
                                 index == OwlDslParser.RULE_classExpr ||
                                 index == OwlDslParser.RULE_propExpr ||
                                 index == OwlDslParser.RULE_individualList ||
@@ -235,8 +237,26 @@ class AmsCompletionContributor : CompletionContributor() {
                     val prev = PsiTreeUtil.prevVisibleLeaf(position) ?: return false
                     val text = prev.text
                     val entityKeywords = listOf(
-                        "subClassOf", "equivalentTo", "disjointWith", "domain", "range", "inverseOf", "type", "subPropertyOf",
-                        "is", "a", "an", "of", "to", "with", "as", "from", "that", "some", "only", "hasValue"
+                        "subClassOf",
+                        "equivalentTo",
+                        "disjointWith",
+                        "domain",
+                        "range",
+                        "inverseOf",
+                        "type",
+                        "subPropertyOf",
+                        "is",
+                        "a",
+                        "an",
+                        "of",
+                        "to",
+                        "with",
+                        "as",
+                        "from",
+                        "that",
+                        "some",
+                        "only",
+                        "hasValue"
                     )
                     return entityKeywords.any { text.equals(it, ignoreCase = true) } ||
                             text == ":" || text == "⊑" || text == "<=:" || text == "∃" || text == "∀"
@@ -255,7 +275,7 @@ class AmsCompletionContributor : CompletionContributor() {
                             if (prev != null) {
                                 val text = prev.text
                                 val entityKeywords = listOf(
-                                    "subClassOf", "equivalentTo", "disjointWith", "domain", "range", 
+                                    "subClassOf", "equivalentTo", "disjointWith", "domain", "range",
                                     "inverseOf", "type", "subPropertyOf", "of", "to", "with"
                                 )
                                 if (entityKeywords.any { text.equals(it, ignoreCase = true) } ||
