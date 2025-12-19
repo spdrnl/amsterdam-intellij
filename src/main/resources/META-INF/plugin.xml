@@ -1,6 +1,6 @@
 <!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
 <idea-plugin>
-    <id>com.github.spdrnl.amsterdamintellij</id>
+    <id>nl.newfoundland.ams.intellij.plugin</id>
     <name>amsterdam-intellij</name>
     <vendor>spdrnl</vendor>
 
@@ -8,8 +8,8 @@
 
     <resource-bundle>messages.MyBundle</resource-bundle>
 
-    <extensions defaultExtensionNs="com.intellij">
-        <toolWindow factoryClass="com.github.spdrnl.amsterdamintellij.toolWindow.MyToolWindowFactory" id="MyToolWindow"/>
-        <postStartupActivity implementation="com.github.spdrnl.amsterdamintellij.startup.MyProjectActivity" />
+    <extensions defaultExtensionNs="nl.newfoundland.ams.intellij">
+        <!--toolWindow factoryClass="nl.newfoundland.ams.intellij.plugin.toolWindow.MyToolWindowFactory" id="MyToolWindow"/-->
+        <!--postStartupActivity implementation="nl.newfoundland.ams.intellij.plugin.startup.MyProjectActivity" /-->
     </extensions>
 </idea-plugin>
