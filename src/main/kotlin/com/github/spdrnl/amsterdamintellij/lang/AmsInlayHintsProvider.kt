@@ -41,12 +41,15 @@ class AmsInlayHintsProvider : InlayHintsProvider<AmsInlayHintsProvider.Settings>
                     if (definition != null) {
                         val axiom = AmsPsiUtil.findAxiom(definition)
                         if (axiom != null) {
-                            val label = AmsPsiUtil.findLabelAnnotation(axiom, settings.languagePreference)
+                            val label = AmsPsiUtil.findBestLabel(axiom, settings.languagePreference)
                             if (label != null) {
                                 val presentation = factory.inset(
-                                    factory.roundWithBackground(factory.smallText(label)),
+                                    factory.roundWithBackground(
+                                        factory.text(label)
+                                    ),
                                     left = 1,
-                                    right = 1
+                                    right = 1,
+                                    top = 2
                                 )
                                 sink.addInlineElement(
                                     element.textOffset,

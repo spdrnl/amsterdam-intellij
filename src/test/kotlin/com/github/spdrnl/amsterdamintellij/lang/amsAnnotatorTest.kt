@@ -20,9 +20,12 @@ class amsAnnotatorTest : BasePlatformTestCase() {
             highlights.find { it.text == "\"occurrent\"@en" && it.forcedTextAttributesKey == AmsSyntaxHighlighter.SEMANTIC_LABEL }
         val idHighlight =
             highlights.find { it.text == "obo:BFO_0000003" && it.forcedTextAttributesKey == AmsSyntaxHighlighter.SEMANTIC_ID }
+        val idRefHighlight =
+            highlights.find { it.text == ":Thing" && it.forcedTextAttributesKey == AmsSyntaxHighlighter.SEMANTIC_ID_REF }
 
         assertNotNull("Label should be semantically highlighted", labelHighlight)
-        assertNotNull("ID should be semantically highlighted", idHighlight)
+        assertNotNull("ID definition should be semantically highlighted", idHighlight)
+        assertNotNull("ID reference should be semantically highlighted", idRefHighlight)
     }
 
     fun testMultipleSemanticIDs() {
@@ -35,7 +38,10 @@ class amsAnnotatorTest : BasePlatformTestCase() {
         myFixture.configureByText("test_multiple.ams", text)
         val highlights = myFixture.doHighlighting()
 
-        val idHighlights = highlights.filter { it.forcedTextAttributesKey == AmsSyntaxHighlighter.SEMANTIC_ID }
+        val idHighlights = highlights.filter { 
+            it.forcedTextAttributesKey == AmsSyntaxHighlighter.SEMANTIC_ID ||
+            it.forcedTextAttributesKey == AmsSyntaxHighlighter.SEMANTIC_ID_REF
+        }
 
         val expectedIDs = listOf("obo:BFO_0000146", "obo:BFO_0000140", "obo:BFO_0000178", "obo:BFO_0000140")
         val highlightedTexts = idHighlights.map { it.text }

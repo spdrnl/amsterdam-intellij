@@ -77,9 +77,22 @@ class amsBreadcrumbsTest : BasePlatformTestCase() {
         }
 
         assertNotNull("Should find bracketed expression", bracketedExpr)
-        assertTrue("Breadcrumbs should accept bracketed expression", provider.acceptElement(bracketedExpr!!))
+        assertFalse("Breadcrumbs should NOT accept bracketed expression (primaryClassExpr) to avoid recursion", provider.acceptElement(bracketedExpr!!))
 
-        val info = provider.getElementInfo(bracketedExpr)
-        assertTrue("Breadcrumb should show content, got: $info", info.contains("process"))
+        // Check for "recursion" (redundancy)
+        // classExpr -> boolClassExpr -> primaryClassExpr -> ( classExpr )
+        val nestedClassExpr = bracketedExpr.children.find {
+            (it.node.elementType as? RuleIElementType)?.ruleIndex == OwlDslParser.RULE_classExpr
+        }
+        if (nestedClassExpr != null) {
+            assertFalse("classExpr should NOT be accepted", provider.acceptElement(nestedClassExpr))
+            
+            val nestedBoolExpr = nestedClassExpr.children.find {
+                (it.node.elementType as? RuleIElementType)?.ruleIndex == OwlDslParser.RULE_boolClassExpr
+            }
+            if (nestedBoolExpr != null) {
+                assertFalse("boolClassExpr should NOT be accepted", provider.acceptElement(nestedBoolExpr))
+            }
+        }
     }
 }

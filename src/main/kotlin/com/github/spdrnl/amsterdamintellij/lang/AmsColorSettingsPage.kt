@@ -20,11 +20,14 @@ class AmsColorSettingsPage : ColorSettingsPage {
             AttributesDescriptor("Dot", AmsSyntaxHighlighter.DOT),
             AttributesDescriptor("Comma", AmsSyntaxHighlighter.COMMA),
             AttributesDescriptor("Semicolon", AmsSyntaxHighlighter.SEMICOLON),
-            AttributesDescriptor("Metadata (Prefix/Annotation)", AmsSyntaxHighlighter.PRE_IRI),
+            AttributesDescriptor("Metadata (Prefix/Language Tag)", AmsSyntaxHighlighter.PRE_IRI),
+            AttributesDescriptor("Annotation Mention (@annotation/@property)", AmsSyntaxHighlighter.ANNOTATION_MENTION),
             AttributesDescriptor("IRI", AmsSyntaxHighlighter.IRI),
             AttributesDescriptor("Default Text", AmsSyntaxHighlighter.DEFAULT_TEXT),
             AttributesDescriptor("Semantic/Inlined Label", AmsSyntaxHighlighter.SEMANTIC_LABEL),
-            AttributesDescriptor("Semantic/Inlined ID", AmsSyntaxHighlighter.SEMANTIC_ID),
+            AttributesDescriptor("Semantic/Inlined ID (Definition)", AmsSyntaxHighlighter.SEMANTIC_ID),
+            AttributesDescriptor("Semantic/Inlined ID (Reference)", AmsSyntaxHighlighter.SEMANTIC_ID_REF),
+            AttributesDescriptor("Inlay Hints Label", AmsSyntaxHighlighter.INLAY_TEXT),
             AttributesDescriptor("Semantic/Class Keyword", AmsSyntaxHighlighter.CLASS_KW),
             AttributesDescriptor("Semantic/Property Keyword", AmsSyntaxHighlighter.PROP_KW),
             AttributesDescriptor("Semantic/Individual Keyword", AmsSyntaxHighlighter.INDIVIDUAL_KW)
@@ -45,19 +48,19 @@ class AmsColorSettingsPage : ColorSettingsPage {
         <metadata>Prefix</metadata> : <iri><http://example.org/></iri> .
         <metadata>Ontology</metadata> <iri><http://example.org/ontology></iri> .
 
-        <metadata>@annotation</metadata>(rdfs:label <string>"Example Class"</string>)
+        <ann>@annotation</ann>(rdfs:label <string>"Example Class"</string>)
         <class_kw>Class</class_kw> <label>"occurrent"@en</label> <id>obo:BFO_0000003</id> ;
-            subClassOf :Thing ;
-            ⊑ :Human ;
-            equivalentTo :Individual .
+            subClassOf <id_ref>:Thing</id_ref> ;
+            ⊑ <id_ref>:Human</id_ref> ;
+            equivalentTo <id_ref>:Individual</id_ref> .
             
-        <metadata>@property</metadata>(rdfs:comment <string>"A numeric value"</string>)
+        <ann>@property</ann>(rdfs:comment <string>"A numeric value"</string>)
         <prop_kw>DataProperty</prop_kw> :hasAge
-            range xsd:integer .
+            range <id_ref>xsd:integer</id_ref> .
 
         <individual_kw>Individual</individual_kw> :JohnDoe
-            type :Person ;
-            :hasAge 42 .
+            type <id_ref>:Person</id_ref> ;
+            <id_ref>:hasAge</id_ref> 42 .
 
         // This is a line comment
         /* This is a 
@@ -66,10 +69,12 @@ class AmsColorSettingsPage : ColorSettingsPage {
 
     override fun getAdditionalHighlightingTagToDescriptorMap() = mapOf(
         "metadata" to AmsSyntaxHighlighter.PRE_IRI,
+        "ann" to AmsSyntaxHighlighter.ANNOTATION_MENTION,
         "iri" to AmsSyntaxHighlighter.IRI,
         "string" to AmsSyntaxHighlighter.STRING,
         "label" to AmsSyntaxHighlighter.SEMANTIC_LABEL,
         "id" to AmsSyntaxHighlighter.SEMANTIC_ID,
+        "id_ref" to AmsSyntaxHighlighter.SEMANTIC_ID_REF,
         "class_kw" to AmsSyntaxHighlighter.CLASS_KW,
         "prop_kw" to AmsSyntaxHighlighter.PROP_KW,
         "individual_kw" to AmsSyntaxHighlighter.INDIVIDUAL_KW

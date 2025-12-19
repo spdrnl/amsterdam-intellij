@@ -142,26 +142,47 @@ class AmsCompletionContributor : CompletionContributor() {
         // Entity ID completion
         extend(
             CompletionType.BASIC,
-            PlatformPatterns.psiElement().withParent(AmsCurie::class.java),
+            PlatformPatterns.psiElement(),
             object : CompletionProvider<CompletionParameters>() {
                 override fun addCompletions(
                     parameters: CompletionParameters,
                     context: ProcessingContext,
                     result: CompletionResultSet
                 ) {
+                    val position = parameters.position
                     val file = parameters.originalFile as? amsFile ?: return
+                    
+                    // Check if we're in a context where entity completion makes sense
+                    val isEntityContext = position.parent is AmsCurie ||
+                            AmsPsiUtil.findAxiom(position) != null ||
+                            isInsideEntityUsage(position) ||
+                            isAfterEntityExpectingKeyword(position) ||
+                            isAfterWhitespaceInEntityContext(position)
+
+                    if (!isEntityContext) return
+
                     val allDefs = file.getAllDefinitions()
+                    
+                    // Use case-insensitive matching for labels
+                    val prefix = result.prefixMatcher.prefix
+                    val caseInsensitiveResult = if (prefix.isNotEmpty()) {
+                        result.withPrefixMatcher(PlainPrefixMatcher(prefix, false))
+                    } else {
+                        result
+                    }
 
                     for (def in allDefs) {
                         val text = def.text
                         if (text != null) {
-                            var builder = LookupElementBuilder.create(text)
-
                             // Add icon and type info
                             val axiom = AmsPsiUtil.findAxiom(def)
                             if (axiom != null) {
-                                builder = builder.withIcon(amsStructureViewElement(axiom).getIcon())
                                 val label = AmsPsiUtil.getAxiomLabel(axiom)
+                                
+                                // Create a builder with the actual ID as the completion string
+                                var builder = LookupElementBuilder.create(def, text)
+                                    .withIcon(amsStructureViewElement(axiom).getIcon())
+                                
                                 if (label != text) {
                                     builder = builder.withTailText(" ($label)", true)
                                     // Add label as lookup string to allow completion by label
@@ -169,25 +190,83 @@ class AmsCompletionContributor : CompletionContributor() {
                                 }
 
                                 // Also add all labels of this axiom as lookup strings
-                                val allLabels = AmsPsiUtil.findAllAnnotations(axiom, "rdfs:label")
+                                val allLabels = AmsPsiUtil.findAllAnnotations(axiom, setOf("rdfs:label", "skos:definition"))
                                 for (l in allLabels) {
                                     if (l.first != text && l.first != label) {
                                         builder = builder.withLookupString(l.first)
                                     }
                                 }
+                                
+                                caseInsensitiveResult.addElement(builder)
+                            } else {
+                                // No axiom, just add the text
+                                caseInsensitiveResult.addElement(LookupElementBuilder.create(text))
                             }
-
-                            result.addElement(builder)
                         }
                     }
 
                     // Prefix completion for CURIEs
                     val prefixMap = file.getPrefixMap()
-                    for (prefix in prefixMap.keys) {
-                        result.addElement(
-                            LookupElementBuilder.create("$prefix:").withPresentableText(prefix).withTypeText("Prefix")
+                    for (prefixName in prefixMap.keys) {
+                        caseInsensitiveResult.addElement(
+                            LookupElementBuilder.create("$prefixName:").withPresentableText(prefixName).withTypeText("Prefix")
                         )
                     }
+                }
+
+                private fun isInsideEntityUsage(position: com.intellij.psi.PsiElement): Boolean {
+                    var curr: com.intellij.psi.PsiElement? = position
+                    while (curr != null && curr !is amsFile) {
+                        if (curr is ANTLRPsiNode) {
+                            val index = (curr.node.elementType as? RuleIElementType)?.ruleIndex
+                            if (index == OwlDslParser.RULE_entityUsage || 
+                                index == OwlDslParser.RULE_classExpr ||
+                                index == OwlDslParser.RULE_propExpr ||
+                                index == OwlDslParser.RULE_individualList ||
+                                index == OwlDslParser.RULE_datatypeId
+                            ) return true
+                        }
+                        curr = curr.parent
+                    }
+                    return false
+                }
+
+                private fun isAfterEntityExpectingKeyword(position: com.intellij.psi.PsiElement): Boolean {
+                    val prev = PsiTreeUtil.prevVisibleLeaf(position) ?: return false
+                    val text = prev.text
+                    val entityKeywords = listOf(
+                        "subClassOf", "equivalentTo", "disjointWith", "domain", "range", "inverseOf", "type", "subPropertyOf",
+                        "is", "a", "an", "of", "to", "with", "as", "from", "that", "some", "only", "hasValue"
+                    )
+                    return entityKeywords.any { text.equals(it, ignoreCase = true) } ||
+                            text == ":" || text == "⊑" || text == "<=:" || text == "∃" || text == "∀"
+                }
+
+                private fun isAfterWhitespaceInEntityContext(position: com.intellij.psi.PsiElement): Boolean {
+                    // Check if we're within a class axiom or other entity-using context
+                    val axiom = AmsPsiUtil.findAxiom(position)
+                    if (axiom != null) {
+                        // We're inside an axiom, so entity completion is likely appropriate
+                        // Check if there's a keyword before us that suggests entity usage
+                        var prev: com.intellij.psi.PsiElement? = position
+                        var depth = 0
+                        while (prev != null && depth < 10) {
+                            prev = PsiTreeUtil.prevVisibleLeaf(prev)
+                            if (prev != null) {
+                                val text = prev.text
+                                val entityKeywords = listOf(
+                                    "subClassOf", "equivalentTo", "disjointWith", "domain", "range", 
+                                    "inverseOf", "type", "subPropertyOf", "of", "to", "with"
+                                )
+                                if (entityKeywords.any { text.equals(it, ignoreCase = true) } ||
+                                    text == "⊑" || text == "<=:") {
+                                    return true
+                                }
+                            }
+                            depth++
+                        }
+                    }
+                    return false
                 }
             }
         )

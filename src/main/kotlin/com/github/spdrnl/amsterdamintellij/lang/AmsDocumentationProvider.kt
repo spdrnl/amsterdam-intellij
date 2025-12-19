@@ -23,6 +23,16 @@ class AmsDocumentationProvider : AbstractDocumentationProvider() {
                     sb.append("<b>Label:</b> $label<br/>")
                 }
 
+                val skosDef = AmsPsiUtil.findAllAnnotations(axiom, "skos:definition").firstOrNull()?.first
+                if (skosDef != null) {
+                    sb.append("<b>Definition:</b> $skosDef<br/>")
+                }
+
+                val inlineComment = AmsPsiUtil.findInlineComment(axiom)
+                if (inlineComment != null) {
+                    sb.append("<b>Comment:</b> $inlineComment<br/>")
+                }
+
                 val comment = AmsPsiUtil.findCommentAnnotation(axiom)
                 if (comment != null) {
                     sb.append("<br/>$comment")
@@ -44,7 +54,7 @@ class AmsDocumentationProvider : AbstractDocumentationProvider() {
             val axiom = AmsPsiUtil.findAxiom(element)
             if (axiom != null) {
                 val type = getAxiomType(axiom)
-                val label = AmsPsiUtil.findLabelAnnotation(axiom)
+                val label = AmsPsiUtil.findBestLabel(axiom)
                 val iri = element.getFullIri()
 
                 return buildString {

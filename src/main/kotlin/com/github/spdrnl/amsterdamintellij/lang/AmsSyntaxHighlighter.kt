@@ -30,20 +30,16 @@ class AmsSyntaxHighlighter : SyntaxHighlighterBase() {
         val IRI = createTextAttributesKey("AMS_IRI", DefaultLanguageHighlighterColors.STRING)
         val DEFAULT_TEXT = createTextAttributesKey("AMS_DEFAULT_TEXT")
 
+        val ANNOTATION_MENTION = createTextAttributesKey("AMS_ANNOTATION_MENTION", DefaultLanguageHighlighterColors.FUNCTION_DECLARATION)
+
         val SEMANTIC_LABEL =
             createTextAttributesKey("AMS_SEMANTIC_LABEL", DefaultLanguageHighlighterColors.STATIC_FIELD)
-        val SEMANTIC_ID = createTextAttributesKey("AMS_SEMANTIC_ID", DefaultLanguageHighlighterColors.METADATA)
+        val SEMANTIC_ID = createTextAttributesKey("AMS_SEMANTIC_ID", DefaultLanguageHighlighterColors.IDENTIFIER)
+        val SEMANTIC_ID_REF = createTextAttributesKey("AMS_SEMANTIC_ID_REF", DefaultLanguageHighlighterColors.METADATA)
+        val INLAY_TEXT = createTextAttributesKey("AMS_INLAY_TEXT", DefaultLanguageHighlighterColors.INLINE_PARAMETER_HINT)
         val CLASS_KW = createTextAttributesKey("AMS_CLASS_KW", DefaultLanguageHighlighterColors.KEYWORD)
         val PROP_KW = createTextAttributesKey("AMS_PROP_KW", DefaultLanguageHighlighterColors.KEYWORD)
         val INDIVIDUAL_KW = createTextAttributesKey("AMS_INDIVIDUAL_KW", DefaultLanguageHighlighterColors.KEYWORD)
-
-        init {
-            PSIElementTypeFactory.defineLanguageIElementTypes(
-                amsLanguage.INSTANCE,
-                OwlDslParser.VOCABULARY,
-                OwlDslParser.ruleNames
-            )
-        }
     }
 
     override fun getHighlightingLexer(): Lexer {
@@ -61,7 +57,8 @@ class AmsSyntaxHighlighter : SyntaxHighlighterBase() {
             OwlDslLexer.BLOCK_COMMENT -> arrayOf(BLOCK_COMMENT)
             OwlDslLexer.INTEGER, OwlDslLexer.DECIMAL, OwlDslLexer.DOUBLE -> arrayOf(NUMBER)
             OwlDslLexer.IRI -> arrayOf(IRI)
-            OwlDslLexer.ANNOTATION, OwlDslLexer.PROPERTY, OwlDslLexer.LANGTAG -> arrayOf(PRE_IRI)
+            OwlDslLexer.ANNOTATION, OwlDslLexer.PROPERTY -> arrayOf(ANNOTATION_MENTION)
+            OwlDslLexer.LANGTAG -> arrayOf(PRE_IRI)
 
             OwlDslLexer.DATA_PROPERTY_KW, OwlDslLexer.DATA_KW, OwlDslLexer.EQUIVALENT_DATA_PROPERTIES_KW,
             OwlDslLexer.DISJOINT_DATA_PROPERTIES_KW, OwlDslLexer.ANNOTATION_PROPERTY_KW, OwlDslLexer.ANNOTATION_KW,

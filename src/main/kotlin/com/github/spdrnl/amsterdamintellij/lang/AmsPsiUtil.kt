@@ -42,17 +42,51 @@ object AmsPsiUtil {
     fun getAxiomLabel(axiom: PsiElement): String {
         if (axiom !is ANTLRPsiNode) return axiom.text.take(20)
 
-        val label = findLabelAnnotation(axiom)
+        val label = findBestLabel(axiom)
         if (label != null) return label
 
         val idNode = findIdNode(axiom)
         return idNode?.text ?: axiom.text.take(20)
     }
 
+    /**
+     * Finds the "best" label for an element, checking rdfs:label, skos:definition, and inline comments.
+     */
+    fun findBestLabel(node: PsiElement, lang: String? = null): String? {
+        // 1. Check rdfs:label
+        findLabelAnnotation(node, lang)?.let { return it }
+
+        // 2. Check skos:definition
+        findAnnotation(node, "skos:definition", lang)?.let { return it }
+
+        // 3. Check inline commentOpt
+        findInlineComment(node)?.let { return it }
+
+        return null
+    }
+
     fun findLabelAnnotation(node: PsiElement, lang: String? = null): String? = findAnnotation(node, "rdfs:label", lang)
 
     fun findCommentAnnotation(node: PsiElement, lang: String? = null): String? =
         findAnnotation(node, "rdfs:comment", lang)
+
+    fun findInlineComment(node: PsiElement): String? {
+        val axiom = if (findAxiom(node) != null) findAxiom(node) else node
+        if (axiom is ANTLRPsiNode) {
+            val commentOpt = axiom.children.find {
+                (it.node.elementType as? RuleIElementType)?.ruleIndex == OwlDslParser.RULE_commentOpt
+            }
+            if (commentOpt != null) {
+                val literal = commentOpt.children.firstOrNull {
+                    (it.node.elementType as? RuleIElementType)?.ruleIndex == OwlDslParser.RULE_literal
+                }
+                if (literal != null) {
+                    return getLiteralContent(literal).first
+                }
+            }
+        }
+        return null
+    }
 
     private fun findAnnotation(node: PsiElement, propName: String, requestedLang: String? = null): String? {
         val candidates = findAllAnnotations(node, propName)

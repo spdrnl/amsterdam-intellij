@@ -210,7 +210,7 @@ objectInversePropertyAxiom
  */
 
 dataPropertyAxiom
-    : ( DATA_PROPERTY_KW | DATA_KW PROPERTY_KW ) propId                     # DataPropertyDecl
+    : ( DATA_PROPERTY_KW | DATA_KW PROPERTY_KW ) commentOpt? propId                     # DataPropertyDecl
     | dataPropertyDomainRangeAxiom                                      # DataPropertyDomainRangeAlt
     | dataSubPropertyAxiom                                              # DataSubPropertyAlt
     | EQUIVALENT_DATA_PROPERTIES_KW LPAREN propExprList RPAREN                   # EquivalentDataPropertiesAxiom
@@ -220,11 +220,11 @@ dataPropertyAxiom
 // dataPropertyDeclTail removed (was empty), to avoid optional-empty warning
 
 dataSubPropertyAxiom
-    : ( DATA_PROPERTY_KW | DATA_KW PROPERTY_KW ) propId (SEMICOLON)? subPropertyOfPhrase propExpr (SEMICOLON)?
+    : ( DATA_PROPERTY_KW | DATA_KW PROPERTY_KW ) commentOpt? propId (SEMICOLON)? subPropertyOfPhrase propExpr (SEMICOLON)?
     ;
 
 dataPropertyDomainRangeAxiom
-    : ( DATA_PROPERTY_KW | DATA_KW PROPERTY_KW ) propId (SEMICOLON)? dataPropertyClause ((SEMICOLON )? dataPropertyClause)* (SEMICOLON)?
+    : ( DATA_PROPERTY_KW | DATA_KW PROPERTY_KW ) commentOpt? propId (SEMICOLON)? dataPropertyClause ((SEMICOLON )? dataPropertyClause)* (SEMICOLON)?
     ;
 
 dataPropertyClause
@@ -252,8 +252,8 @@ annotationPropertyClause
  */
 
 datatypeAxiom
-    : DATATYPE_KW datatypeId                              // declaration
-    | DATATYPE_DEFINITION_KW datatypeId dataRangeExpr
+    : DATATYPE_KW commentOpt? datatypeId                              // declaration
+    | DATATYPE_DEFINITION_KW commentOpt? datatypeId dataRangeExpr
     ;
 
 // Note: Standalone HasKey axiom removed to align with Turtle-style inline class clause
@@ -565,6 +565,7 @@ entityUsage
     : CURIE
     | CURIE_EMPTY
     | fullIRI
+    | IDENTIFIER
     | INTELLIJ_DUMMY
     ;
 
@@ -572,6 +573,7 @@ entityId
     : CURIE
     | CURIE_EMPTY
     | fullIRI
+    | IDENTIFIER
     | INTELLIJ_DUMMY
     ;
 
@@ -579,6 +581,7 @@ classId
     : CURIE
     | CURIE_EMPTY
     | fullIRI
+    | IDENTIFIER
     | INTELLIJ_DUMMY
     ;
 
@@ -586,6 +589,7 @@ propId
     : CURIE
     | CURIE_EMPTY
     | fullIRI
+    | IDENTIFIER
     | INTELLIJ_DUMMY
     ;
 
@@ -593,6 +597,7 @@ individualId
     : CURIE
     | CURIE_EMPTY
     | fullIRI
+    | IDENTIFIER
     | INTELLIJ_DUMMY
     ;
 
@@ -600,6 +605,7 @@ datatypeId
     : CURIE
     | CURIE_EMPTY
     | fullIRI
+    | IDENTIFIER
     | INTELLIJ_DUMMY
     ;
 
@@ -824,6 +830,10 @@ LESS_KW: 'less';
 EQUAL_KW: 'equal';
 TRUE_KW: 'true';
 FALSE_KW: 'false';
+
+IDENTIFIER
+    : [A-Za-z_] [A-Za-z0-9_]*
+    ;
 
 /* Operators & Symbols */
 DOT: '.';

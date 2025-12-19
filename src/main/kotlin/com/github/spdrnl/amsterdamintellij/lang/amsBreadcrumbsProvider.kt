@@ -26,10 +26,7 @@ class amsBreadcrumbsProvider : BreadcrumbsProvider {
                     OwlDslParser.RULE_classClause,
                     OwlDslParser.RULE_objectPropertyClause,
                     OwlDslParser.RULE_dataPropertyClause,
-                    OwlDslParser.RULE_annotationPropertyClause,
-                    OwlDslParser.RULE_primaryClassExpr,
-                    OwlDslParser.RULE_boolClassExpr,
-                    OwlDslParser.RULE_classExpr -> true
+                    OwlDslParser.RULE_annotationPropertyClause -> true
 
                     else -> false
                 }

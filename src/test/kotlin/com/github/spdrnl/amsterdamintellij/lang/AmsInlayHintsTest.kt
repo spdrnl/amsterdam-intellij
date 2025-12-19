@@ -79,6 +79,128 @@ class AmsInlayHintsTest : BasePlatformTestCase() {
         assertTrue("Should fallback to @de if @en is missing", hints.isNotEmpty())
     }
 
+    fun testInlayHintsWithInlineComment() {
+        val text = """
+            Prefix : <http://example.org/> .
+            Class "Human" :Person .
+            
+            Class :Student subClassOf :Person .
+        """.trimIndent()
+
+        myFixture.configureByText("test_inline.ams", text)
+        val file = myFixture.file
+        val editor = myFixture.editor
+
+        val provider = AmsInlayHintsProvider()
+        val settings = provider.createSettings()
+        val sink = TestInlayHintsSink()
+        val collector = provider.getCollectorFor(file, editor, settings, sink)
+
+        file.accept(object : PsiRecursiveElementVisitor() {
+            override fun visitElement(element: PsiElement) {
+                collector.collect(element, editor, sink)
+                super.visitElement(element)
+            }
+        })
+
+        val hints = sink.getHints()
+        assertTrue("Should have inlay hints from inline comment", hints.isNotEmpty())
+        
+        // Verify the label text if possible (it's wrapped in presentations)
+        // For now just checking if it exists at the right offsets
+        val personUsageHint = hints.find { it.offset == text.lastIndexOf(":Person") }
+        assertNotNull("Hint for :Person usage missing", personUsageHint)
+    }
+
+    fun testInlayHintsWithSkosDefinition() {
+        val text = """
+            Prefix : <http://example.org/> .
+            @annotation(skos:definition "A human being")
+            Class :Person .
+            
+            Class :Student subClassOf :Person .
+        """.trimIndent()
+
+        myFixture.configureByText("test_skos.ams", text)
+        val file = myFixture.file
+        val editor = myFixture.editor
+
+        val provider = AmsInlayHintsProvider()
+        val settings = provider.createSettings()
+        val sink = TestInlayHintsSink()
+        val collector = provider.getCollectorFor(file, editor, settings, sink)
+
+        file.accept(object : PsiRecursiveElementVisitor() {
+            override fun visitElement(element: PsiElement) {
+                collector.collect(element, editor, sink)
+                super.visitElement(element)
+            }
+        })
+
+        val hints = sink.getHints()
+        assertTrue("Should have inlay hints from skos:definition", hints.isNotEmpty())
+    }
+
+    fun testInlayHintsWithDataPropertyInlineComment() {
+        val text = """
+            Prefix : <http://example.org/> .
+            DataProperty "Age" :hasAge .
+            
+            Individual :John ; :hasAge 30 .
+        """.trimIndent()
+
+        myFixture.configureByText("test_data_inline.ams", text)
+        val file = myFixture.file
+        val editor = myFixture.editor
+
+        val provider = AmsInlayHintsProvider()
+        val settings = provider.createSettings()
+        val sink = TestInlayHintsSink()
+        val collector = provider.getCollectorFor(file, editor, settings, sink)
+
+        file.accept(object : PsiRecursiveElementVisitor() {
+            override fun visitElement(element: PsiElement) {
+                collector.collect(element, editor, sink)
+                super.visitElement(element)
+            }
+        })
+
+        val hints = sink.getHints()
+        val hasAgeUsageHint = hints.find { it.offset == text.lastIndexOf(":hasAge") }
+        assertNotNull("Hint for :hasAge usage missing", hasAgeUsageHint)
+    }
+
+    fun testInlayHintsWithDatatypeInlineComment() {
+        val text = """
+            Prefix : <http://example.org/> .
+            Datatype "Small Integer" :smallInt .
+            
+            Class :SmallThing subClassOf restriction(:hasValue { minInclusive 0 }) .
+            // Just a dummy usage of :smallInt to trigger hint
+            Class :Other subClassOf :smallInt .
+        """.trimIndent()
+
+        myFixture.configureByText("test_datatype_inline.ams", text)
+        val file = myFixture.file
+        val editor = myFixture.editor
+
+        val provider = AmsInlayHintsProvider()
+        val settings = provider.createSettings()
+        val sink = TestInlayHintsSink()
+        val collector = provider.getCollectorFor(file, editor, settings, sink)
+
+        file.accept(object : PsiRecursiveElementVisitor() {
+            override fun visitElement(element: PsiElement) {
+                collector.collect(element, editor, sink)
+                super.visitElement(element)
+            }
+        })
+
+        val hints = sink.getHints()
+        val smallIntUsageHint = hints.find { it.offset == text.lastIndexOf(":smallInt") }
+        assertNotNull("Hint for :smallInt usage missing", smallIntUsageHint)
+    }
+
     private class TestInlayHintsSink : InlayHintsSink {
         private val hints = mutableListOf<HintData>()
 
