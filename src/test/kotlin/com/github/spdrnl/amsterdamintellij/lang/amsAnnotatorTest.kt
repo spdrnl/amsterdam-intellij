@@ -80,13 +80,13 @@ class amsAnnotatorTest : BasePlatformTestCase() {
 
         val expected = """
             Prefix undefined: <http://example.org/> .
-            
+
             Prefix : <http://example.org/> .
             Class <http://example.org/C1> .
             Class undefined:MyClass .
         """.trimIndent()
 
-        val actual = myFixture.file.text.trim()
+        val actual = myFixture.file.text
         assertEquals(expected, actual)
     }
 
@@ -94,7 +94,7 @@ class amsAnnotatorTest : BasePlatformTestCase() {
         val text = """
             Prefix : <http://example.org/> .
             Class :C1 .
-            Object Property :C1 .
+            object property :C1 .
         """.trimIndent()
 
         myFixture.configureByText("test_dup_id.ams", text)

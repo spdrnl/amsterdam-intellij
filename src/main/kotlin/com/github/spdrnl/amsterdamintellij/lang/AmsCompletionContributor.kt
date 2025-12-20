@@ -329,14 +329,14 @@ class AmsCompletionContributor : CompletionContributor() {
                     val prev = PsiTreeUtil.prevVisibleLeaf(position) ?: return false
                     val text = prev.text
                     val entityKeywords = listOf(
-                        "subClassOf",
-                        "equivalentTo",
-                        "disjointWith",
+                        "subclass of",
+                        "equivalent to",
+                        "disjoint with",
                         "domain",
                         "range",
-                        "inverseOf",
+                        "inverse of",
                         "type",
-                        "subPropertyOf",
+                        "subproperty of",
                         "is",
                         "a",
                         "an",
@@ -348,7 +348,7 @@ class AmsCompletionContributor : CompletionContributor() {
                         "that",
                         "some",
                         "only",
-                        "hasValue"
+                        "has value"
                     )
                     return entityKeywords.any { text.equals(it, ignoreCase = true) } ||
                             text == ":" || text == "⊑" || text == "<=:" || text == "∃" || text == "∀"
@@ -367,8 +367,8 @@ class AmsCompletionContributor : CompletionContributor() {
                             if (prev != null) {
                                 val text = prev.text
                                 val entityKeywords = listOf(
-                                    "subClassOf", "equivalentTo", "disjointWith", "domain", "range",
-                                    "inverseOf", "type", "subPropertyOf", "of", "to", "with"
+                                    "subclass of", "equivalent to", "disjoint with", "domain", "range",
+                                    "inverse of", "type", "subproperty of", "of", "to", "with"
                                 )
                                 if (entityKeywords.any { text.equals(it, ignoreCase = true) } ||
                                     text == "⊑" || text == "<=:") {

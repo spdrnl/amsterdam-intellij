@@ -24,9 +24,8 @@ class amsFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, amsLan
             val map = mutableMapOf<String, String>()
             for (decl in prefixDecls) {
                 val prefix = decl.name ?: ""
-                val namespace = decl.children.find {
-                    it is AmsCurie && it.text.startsWith('<')
-                }?.text?.let { it.substring(1, it.length - 1) }
+                val namespaceCurie = decl.children.find { it is AmsCurie } as? AmsCurie
+                val namespace = namespaceCurie?.getFullIri()
                 if (namespace != null) {
                     map[prefix] = namespace
                 }

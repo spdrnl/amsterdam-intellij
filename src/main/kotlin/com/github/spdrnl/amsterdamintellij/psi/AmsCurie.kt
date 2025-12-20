@@ -10,6 +10,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiNameIdentifierOwner
 import com.intellij.psi.PsiNamedElement
 import com.intellij.psi.PsiReference
+import com.intellij.psi.util.PsiTreeUtil
 import org.antlr.intellij.adaptor.lexer.PSIElementTypeFactory
 import org.antlr.intellij.adaptor.lexer.RuleIElementType
 import org.antlr.intellij.adaptor.psi.ANTLRPsiNode
@@ -22,22 +23,18 @@ class AmsCurie(node: ASTNode) : ANTLRPsiNode(node), PsiNamedElement, PsiNameIden
             val t = id.text
             if (t.startsWith('<') && t.endsWith('>')) {
                 val iri = t.substring(1, t.length - 1)
-
-                // Check if it starts with any declared namespace
-                val file = containingFile as? amsFile ?: return iri
-                val prefixMap = file.getPrefixMap()
-                for ((_, namespace) in prefixMap) {
-                    if (iri.startsWith(namespace)) {
-                        return iri.substring(namespace.length)
-                    }
+                
+                // If the IRI has a known namespace, return the local part
+                val ns = getNamespace()
+                if (ns != null && iri.startsWith(ns)) {
+                    return iri.substring(ns.length)
                 }
-
-                // No declared namespace match: return full IRI without brackets
+                
+                // No known namespace, return the full IRI without brackets
                 return iri
             }
             if (t.contains(':')) {
-                // For CURIEs, return the local name part
-                return t.substring(t.indexOf(':') + 1)
+                return getLocalName()
             }
             return t
         }
@@ -50,69 +47,70 @@ class AmsCurie(node: ASTNode) : ANTLRPsiNode(node), PsiNamedElement, PsiNameIden
         // Check if this is a namespace IRI renaming
         val ruleIndex = (node.elementType as? RuleIElementType)?.ruleIndex
         if (ruleIndex == OwlDslParser.RULE_namespaceIRI) {
-            // Renaming the IRI in "Prefix obo: <...>"
             val oldNamespace = if (currentText.startsWith('<') && currentText.endsWith('>')) {
                 currentText.substring(1, currentText.length - 1)
             } else {
                 currentText
             }
-            val newNamespace = if (name.startsWith('<') && name.endsWith('>')) {
-                name.substring(1, name.length - 1)
-            } else {
-                name
-            }
+            val cleanName = name.removePrefix("<").removeSuffix(">")
+            val newNamespace = cleanName
 
             val file = (containingFile as? amsFile) ?: return this
-            val allCuries = file.getAllDefinitions() // Only need definitions for IRI check
-            getFullIri()
+            
+            val allCuries = PsiTreeUtil.findChildrenOfType(file, AmsCurie::class.java)
             for (curie in allCuries) {
-                if (curie === this || !curie.isValid || !curie.isPhysical) continue
+                if (curie === this || !curie.isValid) continue
                 val t = curie.text
                 if (t.startsWith('<') && t.endsWith('>')) {
                     val iri = t.substring(1, t.length - 1)
                     if (iri.startsWith(oldNamespace)) {
                         val rest = iri.substring(oldNamespace.length)
-                        curie.replace(AmsElementFactory.createCurie(project, "<$newNamespace$rest>"))
+                        val newIri = "<$newNamespace$rest>"
+                        if (t != newIri) {
+                            curie.replace(AmsElementFactory.createCurie(project, newIri))
+                        }
                     }
                 }
             }
 
-            val newCurie = AmsElementFactory.createCurie(project, if (name.startsWith('<')) name else "<$name>")
+            val newCurie = AmsElementFactory.createCurie(project, "<$newNamespace>")
             return this.replace(newCurie)
         }
 
         val newName = if (currentText.startsWith('<') && currentText.endsWith('>')) {
             // It's an IRI.
-            val iri = currentText.substring(1, currentText.length - 1)
-
-            // Check if it starts with any declared namespace
-            val file = containingFile as? amsFile
-            val prefixMap = file?.getPrefixMap() ?: emptyMap()
-            var matchedNamespace: String? = null
-            for ((_, namespace) in prefixMap) {
-                if (iri.startsWith(namespace)) {
-                    matchedNamespace = namespace
-                    break
-                }
-            }
-
-            if (name.startsWith('<') && name.endsWith('>')) {
-                name
-            } else if (name.contains("://") || name.startsWith("http")) {
-                "<$name>"
-            } else if (matchedNamespace != null) {
-                // User provided a local part, and we have a matched namespace
-                "<$matchedNamespace$name>"
+            val cleanName = name.removePrefix("<").removeSuffix(">")
+            
+            // If the name provided is a full IRI (contains protocol), use it as is
+            if (cleanName.contains("://") || cleanName.startsWith("http")) {
+                "<$cleanName>"
             } else {
-                // No match, user likely provided a full IRI without brackets
-                "<$name>"
+                // Otherwise, it's just the local name part.
+                val matchedNamespace = getNamespace()
+                if (matchedNamespace != null) {
+                    "<$matchedNamespace$cleanName>"
+                } else {
+                    // Fallback: if no declared namespace matches, split at last / or #
+                    val iri = currentText.substring(1, currentText.length - 1)
+                    val lastSlash = iri.lastIndexOf('/')
+                    val lastHash = iri.lastIndexOf('#')
+                    val splitIdx = maxOf(lastSlash, lastHash)
+                    if (splitIdx != -1) {
+                        "<${iri.substring(0, splitIdx + 1)}$cleanName>"
+                    } else {
+                        "<$cleanName>"
+                    }
+                }
             }
         } else {
             // It's a CURIE.
             val colonIndex = currentText.indexOf(':')
             if (colonIndex != -1) {
                 if (name.contains(':')) {
-                    // If they provided a full CURIE (e.g. through some other means), use it
+                    // If they provided a full CURIE, use it
+                    name
+                } else if (name.startsWith('<') && name.endsWith('>')) {
+                    // If they renamed a CURIE to a full IRI
                     name
                 } else {
                     // Standard case: renaming local part
@@ -174,38 +172,49 @@ class AmsCurie(node: ASTNode) : ANTLRPsiNode(node), PsiNamedElement, PsiNameIden
     override fun getReferences(): Array<PsiReference> {
         val refs = mutableListOf<PsiReference>()
         val t = text
-        if (t.startsWith('<')) {
-            // IRIs also need to resolve to their definitions
-            if (!isDef()) {
+        
+        // Add LocalNameReference to everything that is not a definition
+        if (!isDef()) {
+            if (t.startsWith('<')) {
                 refs.add(AmsCurieLocalNameReference(this, TextRange(0, t.length)))
+            } else {
+                val colonIndex = t.indexOf(':')
+                if (colonIndex != -1) {
+                    refs.add(AmsCurieReference(this, TextRange(0, colonIndex)))
+                    refs.add(AmsCurieLocalNameReference(this, TextRange(colonIndex + 1, t.length)))
+                } else {
+                    refs.add(AmsCurieLocalNameReference(this, TextRange(0, t.length)))
+                }
             }
-            return refs.toTypedArray()
-        }
-
-        val colonIndex = t.indexOf(':')
-        if (colonIndex != -1) {
+        } else if (t.contains(':') && !t.startsWith('<')) {
+            // Even if it's a definition, we might want to resolve the prefix
+            val colonIndex = t.indexOf(':')
             refs.add(AmsCurieReference(this, TextRange(0, colonIndex)))
-            // Add reference for the local name part if it's not a declaration
-            if (!isDef()) {
-                refs.add(AmsCurieLocalNameReference(this, TextRange(colonIndex + 1, t.length)))
-            }
-        } else {
-            if (!isDef()) {
-                refs.add(AmsCurieLocalNameReference(this, TextRange(0, t.length)))
-            }
         }
 
         return refs.toTypedArray()
     }
 
     fun isDef(): Boolean {
-        // Recursive search for the first ID token in an axiom, skipping annotations
+        // Recursive search for the first ID token in an axiom, skipping annotations and ontology property blocks
         fun findFirstId(node: com.intellij.psi.PsiElement): com.intellij.psi.PsiElement? {
-            if (node is AmsCurie) return node
+            if (node is AmsCurie) {
+                // println("[DEBUG_LOG] findFirstId encountered AmsCurie: ${node.text}")
+                return node
+            }
             for (child in node.children) {
                 if (child is ANTLRPsiNode) {
                     val type = (child.node.elementType as? RuleIElementType)?.ruleIndex
-                    if (type == OwlDslParser.RULE_annotationBlock || type == OwlDslParser.RULE_ontologyPropertyBlock || type == OwlDslParser.RULE_commentOpt) continue
+                    if (type == OwlDslParser.RULE_annotationBlock || 
+                        type == OwlDslParser.RULE_ontologyPropertyBlock || 
+                        type == OwlDslParser.RULE_commentOpt ||
+                        type == OwlDslParser.RULE_classClause ||
+                        type == OwlDslParser.RULE_objectPropertyClause ||
+                        type == OwlDslParser.RULE_dataPropertyClause
+                    ) {
+                        // println("[DEBUG_LOG] findFirstId skipping child type: $type")
+                        continue
+                    }
                 }
                 val found = findFirstId(child)
                 if (found != null) return found
@@ -215,24 +224,35 @@ class AmsCurie(node: ASTNode) : ANTLRPsiNode(node), PsiNamedElement, PsiNameIden
 
         val nodeType = node.elementType
         var rIdx = if (nodeType is RuleIElementType) nodeType.ruleIndex else -1
-        
+
         fun isIdRule(idx: Int) = idx == OwlDslParser.RULE_classId ||
                 idx == OwlDslParser.RULE_propId ||
                 idx == OwlDslParser.RULE_datatypeId ||
                 idx == OwlDslParser.RULE_individualId ||
-                idx == OwlDslParser.RULE_entityId ||
-                idx == OwlDslParser.RULE_namespaceIRI
-
-        if (isIdRule(rIdx)) return true
+                idx == OwlDslParser.RULE_entityId
 
         var curr: com.intellij.psi.PsiElement? = this
         while (curr != null && curr !is amsFile) {
             val type = curr.node.elementType
             if (type is RuleIElementType) {
                 val idx = type.ruleIndex
-                if (isIdRule(idx)) return true
-                if (idx == OwlDslParser.RULE_classAxiom || 
-                    idx == OwlDslParser.RULE_objectPropertyAxiom || 
+                if (idx == OwlDslParser.RULE_namespaceIRI) return true
+                
+                // All disjoint classes (...) is NOT a definition
+                if (idx == OwlDslParser.RULE_allDisjointClassesPhrase) return false
+                
+                // Check if we are inside AllDisjointClassesAxiom
+                var p = curr
+                while (p != null && p !is amsFile) {
+                    val pType = (p.node.elementType as? RuleIElementType)?.ruleIndex
+                    if (pType == OwlDslParser.RULE_classAxiom && p.node.text.startsWith("All disjoint classes", ignoreCase = true)) {
+                        return false
+                    }
+                    p = p.parent
+                }
+
+                if (idx == OwlDslParser.RULE_classAxiom ||
+                    idx == OwlDslParser.RULE_objectPropertyAxiom ||
                     idx == OwlDslParser.RULE_dataPropertyAxiom ||
                     idx == OwlDslParser.RULE_individualAxiom ||
                     idx == OwlDslParser.RULE_annotationPropertyAxiom ||
@@ -243,11 +263,10 @@ class AmsCurie(node: ASTNode) : ANTLRPsiNode(node), PsiNamedElement, PsiNameIden
                     idx == OwlDslParser.RULE_dataPropertyDomainRangeAxiom ||
                     idx == OwlDslParser.RULE_dataSubPropertyAxiom ||
                     idx == OwlDslParser.RULE_subPropertyChainAxiom ||
-                    idx == OwlDslParser.RULE_objectInversePropertyAxiom
+                    idx == OwlDslParser.RULE_objectInversePropertyAxiom ||
+                    idx == OwlDslParser.RULE_bareAxiom
                 ) {
-                    // subject-centric axiom check: is this the first ID?
-                    if (findFirstId(curr) === this) return true
-                    break 
+                    return findFirstId(curr) === this
                 }
             }
             curr = curr.parent
@@ -256,15 +275,60 @@ class AmsCurie(node: ASTNode) : ANTLRPsiNode(node), PsiNamedElement, PsiNameIden
         return false
     }
 
+    fun getNamespace(): String? {
+        val t = text
+        if (t.startsWith('<') && t.endsWith('>')) {
+            val iri = t.substring(1, t.length - 1)
+            val file = containingFile as? amsFile
+            val prefixMap = file?.getPrefixMap() ?: emptyMap()
+            for ((_, ns) in prefixMap) {
+                if (iri.startsWith(ns) && ns.isNotEmpty()) return ns
+            }
+            return null
+        } else {
+            val prefix = getPrefix() ?: ""
+            val file = containingFile as? amsFile
+            return file?.getPrefixMap()?.get(prefix)
+        }
+    }
+
+    fun getPrefix(): String? {
+        val t = text
+        if (t.startsWith('<')) {
+            val ns = getNamespace() ?: return null
+            val file = containingFile as? amsFile
+            val prefixMap = file?.getPrefixMap() ?: emptyMap()
+            return prefixMap.entries.find { it.value == ns }?.key
+        }
+        val colonIndex = t.indexOf(':')
+        return if (colonIndex != -1) t.substring(0, colonIndex) else null
+    }
+
+    fun getLocalName(): String {
+        val t = text
+        if (t.startsWith('<') && t.endsWith('>')) {
+            val ns = getNamespace()
+            val iri = t.substring(1, t.length - 1)
+            if (ns != null && iri.startsWith(ns)) return iri.substring(ns.length)
+            
+            // Fallback: split at last / or #
+            val lastSlash = iri.lastIndexOf('/')
+            val lastHash = iri.lastIndexOf('#')
+            val splitIdx = maxOf(lastSlash, lastHash)
+            return if (splitIdx != -1) iri.substring(splitIdx + 1) else iri
+        }
+        val colonIndex = t.indexOf(':')
+        return if (colonIndex != -1) t.substring(colonIndex + 1) else t
+    }
+
     fun getFullIri(): String? {
         val t = text
         if (t.startsWith('<') && t.endsWith('>')) {
             return t.substring(1, t.length - 1)
         }
-        val colonIndex = t.indexOf(':')
-
-        val prefix = if (colonIndex != -1) t.substring(0, colonIndex) else ""
-        val localName = if (colonIndex != -1) t.substring(colonIndex + 1) else t
+        
+        val prefix = getPrefix() ?: ""
+        val localName = getLocalName()
 
         val file = containingFile as? amsFile ?: return null
         val prefixMap = file.getPrefixMap()

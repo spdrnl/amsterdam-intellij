@@ -84,7 +84,7 @@ class amsStructureViewElement(private val element: PsiElement) : StructureViewTr
                     OwlDslParser.RULE_annotationPropertyAxiom -> 2
                     OwlDslParser.RULE_classAxiom -> {
                         val text = element.text
-                        if (text.startsWith("All disjoint classes") || text.startsWith("AllDisjointClasses")) 4 // Disjoint Unions
+                        if (text.startsWith("All disjoint classes", ignoreCase = true) || text.startsWith("AllDisjointClasses")) 4 // Disjoint Unions
                         else 3 // Classes
                     }
 
@@ -108,7 +108,7 @@ class amsStructureViewElement(private val element: PsiElement) : StructureViewTr
                     OwlDslParser.RULE_prefixDecl -> AmsIcons.PREFIX
                     OwlDslParser.RULE_classAxiom -> {
                         val text = element.text
-                        if (text.startsWith("All disjoint classes") || text.startsWith("AllDisjointClasses")) {
+                        if (text.startsWith("All disjoint classes", ignoreCase = true) || text.startsWith("AllDisjointClasses")) {
                             AmsIcons.ALL_DISJOINT_CLASSES
                         } else {
                             AmsIcons.CLASS

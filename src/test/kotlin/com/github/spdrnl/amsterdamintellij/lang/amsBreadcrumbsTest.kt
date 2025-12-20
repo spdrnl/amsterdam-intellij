@@ -14,7 +14,7 @@ class amsBreadcrumbsTest : BasePlatformTestCase() {
             Ontology <http://example.org/test> .
             
             Class :Person 
-                subClassOf :Thing .
+                subclass of :Thing .
         """.trimIndent()
 
         myFixture.configureByText("test.ams", text)
@@ -51,7 +51,7 @@ class amsBreadcrumbsTest : BasePlatformTestCase() {
 
         assertNotNull(clauseNode)
         assertTrue(provider.acceptElement(clauseNode!!))
-        assertEquals("subClassOf :Thing", provider.getElementInfo(clauseNode).trim())
+        assertEquals("subclass of :Thing", provider.getElementInfo(clauseNode).trim())
     }
 
     fun testDeepBreadcrumbs() {

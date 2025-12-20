@@ -13,10 +13,10 @@ class AmsFindUsagesTest : BasePlatformTestCase() {
             Class :MyClass .
             
             Class :OtherClass
-                subClassOf :MyClass .
+                subclass of :MyClass .
                 
             Class :ThirdClass
-                equivalentTo :MyClass .
+                equivalent to :MyClass .
         """.trimIndent()
         )
 
@@ -33,10 +33,10 @@ class AmsFindUsagesTest : BasePlatformTestCase() {
             "test.ams", """
             Prefix : <http://example.org/>.
             
-            ObjectProperty :myProp .
+            object property :myProp .
             
             Class :MyClass
-                subClassOf :myProp some :OtherClass .
+                subclass of :myProp some :OtherClass .
         """.trimIndent()
         )
 

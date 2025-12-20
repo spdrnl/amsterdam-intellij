@@ -11,8 +11,8 @@ class AmsFormattingTest : BasePlatformTestCase() {
 Prefix : <http://example.org/> .
 Prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 Ontology <http://example.org/test> .
-Class :Person ; subClassOf :Thing ; disjointWith :Organism .
-Object Property :hasChild ; domain :Person ; range :Person .
+Class :Person ; subclass of :Thing ; disjoint with :Organism .
+object property :hasChild ; domain :Person ; range :Person .
         """.trimIndent()
 
         val expected = """Prefix : <http://example.org/> .
@@ -22,14 +22,16 @@ Prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 Ontology <http://example.org/test> .
 
 Class :Person ;
-    subClassOf :Thing ;
-    disjointWith :Organism .
+    subclass of :Thing ;
+    disjoint with :Organism .
 
-Object Property :hasChild ;
-    domain :Person ;
-    range :Person ."""
+object property :hasChild ; domain :Person ; range :Person ."""
 
         myFixture.configureByText("test.ams", text)
+        
+        // println("[DEBUG_LOG] PSI Tree:")
+        // com.github.spdrnl.amsterdamintellij.lang.AmsPsiUtil.printPsiTree(myFixture.file)
+
         WriteCommandAction.runWriteCommandAction(project) {
             CodeStyleManager.getInstance(project).reformat(myFixture.file)
         }

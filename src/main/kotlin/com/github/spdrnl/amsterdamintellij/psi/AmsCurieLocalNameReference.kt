@@ -9,7 +9,7 @@ class AmsCurieLocalNameReference(element: AmsCurie, range: TextRange) : PsiRefer
 
     override fun resolve(): PsiElement? {
         val results = multiResolve(false)
-        return if (results.size == 1) results[0].element else null
+        return if (results.isNotEmpty()) results[0].element else null
     }
 
     override fun multiResolve(incompleteCode: Boolean): Array<ResolveResult> {

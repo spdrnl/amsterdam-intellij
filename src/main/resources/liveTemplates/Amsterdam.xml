@@ -6,7 +6,7 @@
             <option name="AMSTERDAM" value="true"/>
         </context>
     </template>
-    <template name="ap" value="AnnotationProperty $ID$ ." description="Annotation Property declaration"
+    <template name="ap" value="annotation property $ID$ ." description="Annotation Property declaration"
               toReformat="true" toShortenFQNames="true">
         <variable name="ID" expression="" defaultValue=":" alwaysStopAt="true"/>
         <context>
@@ -19,14 +19,14 @@
             <option name="AMSTERDAM" value="true"/>
         </context>
     </template>
-    <template name="op" value="ObjectProperty $ID$ ." description="Object Property declaration" toReformat="true"
+    <template name="op" value="object property $ID$ ." description="Object Property declaration" toReformat="true"
               toShortenFQNames="true">
         <variable name="ID" expression="" defaultValue=":" alwaysStopAt="true"/>
         <context>
             <option name="AMSTERDAM" value="true"/>
         </context>
     </template>
-    <template name="dp" value="DataProperty $ID$ ." description="Data Property declaration" toReformat="true"
+    <template name="dp" value="data property $ID$ ." description="Data Property declaration" toReformat="true"
               toShortenFQNames="true">
         <variable name="ID" expression="" defaultValue=":" alwaysStopAt="true"/>
         <context>
@@ -47,7 +47,7 @@
             <option name="AMSTERDAM" value="true"/>
         </context>
     </template>
-    <template name="ax" value="AllDisjointClasses($CLASSES$) ." description="All Disjoint Union" toReformat="true"
+    <template name="ax" value="All disjoint classes($CLASSES$) ." description="All Disjoint Union" toReformat="true"
               toShortenFQNames="true">
         <variable name="CLASSES" expression="" defaultValue="" alwaysStopAt="true"/>
         <context>

@@ -60,7 +60,7 @@ class AmsRenameTest : BasePlatformTestCase() {
             Prefix : <http://example.org/> .
             Class :OldName .
             Class :Other ;
-                subClassOf :OldName .
+                subclass of :OldName .
         """.trimIndent()
 
         myFixture.configureByText("test2.ams", text)
@@ -81,36 +81,41 @@ class AmsRenameTest : BasePlatformTestCase() {
 
         val updatedText = myFixture.file.text
         assertTrue("Declaration should be renamed", updatedText.contains("Class :NewName"))
-        assertTrue("Usage should be renamed", updatedText.contains("subClassOf :NewName"))
+        assertTrue("Usage should be renamed", updatedText.contains("subclass of :NewName"))
     }
 
     fun testRenameIri() {
         val text = """
             Prefix : <http://example.org/> .
             Class <http://example.org/OldIri> .
-            Class :Other ;
-                subClassOf <http://example.org/OldIri> .
+            Class :Other ; subclass of <http://example.org/OldIri> .
         """.trimIndent()
 
         myFixture.configureByText("test_iri.ams", text)
-
-        val curies = PsiTreeUtil.findChildrenOfType(myFixture.file, AmsCurie::class.java)
-        val decl = curies.find { it.text == "<http://example.org/OldIri>" }
+        
+        val curies = PsiTreeUtil.findChildrenOfType(myFixture.file, AmsCurie::class.java).toList()
+        val decl = curies.find { it.text == "<http://example.org/OldIri>" && it.isDef() }
         assertNotNull("Declaration IRI should be found", decl)
+
+        val usage = curies.find { it.text == "<http://example.org/OldIri>" && !it.isDef() }
+        assertNotNull("Usage IRI should be found", usage)
+
+        val ref = usage!!.references.find { it is AmsCurieLocalNameReference }
+        assertNotNull("Usage should have a local name reference", ref)
+        assertEquals("Reference should resolve to declaration", decl, ref!!.resolve())
 
         myFixture.renameElement(decl!!, "<http://example.org/NewIri>")
 
         val updatedText = myFixture.file.text
         assertTrue("Declaration IRI should be renamed", updatedText.contains("Class <http://example.org/NewIri>"))
-        assertTrue("Usage IRI should be renamed", updatedText.contains("subClassOf <http://example.org/NewIri>"))
+        assertTrue("Usage IRI should be renamed", updatedText.contains("subclass of <http://example.org/NewIri>"))
     }
 
     fun testRenameIriFromUsage() {
         val text = """
             Prefix : <http://example.org/> .
             Class <http://example.org/OldIri> .
-            Class :Other ;
-                subClassOf <http://example.org/Old<caret>Iri> .
+            Class :Other ; subclass of <http://example.org/Old<caret>Iri> .
         """.trimIndent()
 
         myFixture.configureByText("test_iri_usage.ams", text)
@@ -118,25 +123,23 @@ class AmsRenameTest : BasePlatformTestCase() {
 
         val updatedText = myFixture.file.text
         assertTrue("Declaration IRI should be renamed", updatedText.contains("Class <http://example.org/NewIri>"))
-        assertTrue("Usage IRI should be renamed", updatedText.contains("subClassOf <http://example.org/NewIri>"))
+        assertTrue("Usage IRI should be renamed", updatedText.contains("subclass of <http://example.org/NewIri>"))
     }
 
     fun testRenameIriLocalName() {
         val text = """
             Prefix : <http://example.org/> .
             Class <http://example.org/OldIri> .
-            Class :Other ;
-                subClassOf <http://example.org/Old<caret>Iri> .
+            Class :Other ; subclass of <http://example.org/Old<caret>Iri> .
         """.trimIndent()
 
         myFixture.configureByText("test_iri_local.ams", text)
-        // Rename to just a local name (should it be allowed? probably not for a full IRI)
-        // If the user provides a full IRI, it should replace it.
+        // Rename to just a local name
         myFixture.renameElementAtCaret("NewIri")
 
         val updatedText = myFixture.file.text
         assertTrue("Declaration IRI should be renamed", updatedText.contains("Class <http://example.org/NewIri>"))
-        assertTrue("Usage IRI should be renamed", updatedText.contains("subClassOf <http://example.org/NewIri>"))
+        assertTrue("Usage IRI should be renamed", updatedText.contains("subclass of <http://example.org/NewIri>"))
     }
 
     fun testRenameCurieExperience() {
@@ -178,6 +181,62 @@ class AmsRenameTest : BasePlatformTestCase() {
 
         myFixture.renameElementAtCaret("http://purl.org/dc/elements/1.2/")
         assertTrue("IRI should be updated to 1.2", myFixture.file.text.contains("<http://purl.org/dc/elements/1.2/>"))
+    }
+
+    fun testRenameNamespaceUpdatesIris() {
+        val text = """
+            Prefix : <http://example.org/old/> .
+            Class <http://example.org/old/Entity> .
+        """.trimIndent()
+        myFixture.configureByText("namespace_updates.ams", text)
+
+        // Find the IRI in Prefix statement
+        val curies = PsiTreeUtil.findChildrenOfType(myFixture.file, AmsCurie::class.java).toList()
+        val nsIri = curies.find { it.text == "<http://example.org/old/>" }
+        assertNotNull(nsIri)
+
+        myFixture.renameElement(nsIri!!, "http://example.org/new/")
+
+        val updatedText = myFixture.file.text
+        assertTrue("Prefix should be updated", updatedText.contains("Prefix : <http://example.org/new/>"))
+        assertTrue("Usage IRI should be updated", updatedText.contains("Class <http://example.org/new/Entity>"))
+    }
+
+    fun testRenameIriNamespacePartUpdatesPrefix() {
+        val text = """
+            Prefix : <http://example.org/old/> .
+            Class <http://example.org/old/Entity> .
+        """.trimIndent()
+        myFixture.configureByText("iri_ns_updates.ams", text)
+
+        val curies = PsiTreeUtil.findChildrenOfType(myFixture.file, AmsCurie::class.java).toList()
+        val nsIri = curies.find { it.text == "<http://example.org/old/>" }
+        assertNotNull(nsIri)
+
+        myFixture.renameElement(nsIri!!, "http://example.org/new/")
+
+        val updatedText = myFixture.file.text
+        assertTrue("Prefix should be updated", updatedText.contains("Prefix : <http://example.org/new/>"))
+        assertTrue("IRI should be updated", updatedText.contains("Class <http://example.org/new/Entity>"))
+    }
+
+    fun testRenameLocalNameUpdatesCurieAndIri() {
+        val text = """
+            Prefix : <http://example.org/> .
+            Class :MyClass .
+            Class <http://example.org/MyClass> .
+        """.trimIndent()
+        myFixture.configureByText("rename_both.ams", text)
+
+        val curies = PsiTreeUtil.findChildrenOfType(myFixture.file, AmsCurie::class.java).toList()
+        val curieDecl = curies.find { it.text == ":MyClass" }
+        assertNotNull(curieDecl)
+
+        myFixture.renameElement(curieDecl!!, "NewClass")
+
+        val updatedText = myFixture.file.text
+        assertTrue("CURIE should be updated", updatedText.contains("Class :NewClass"))
+        assertTrue("IRI should be updated", updatedText.contains("Class <http://example.org/NewClass>"))
     }
 
     fun testRenameIriToFullIriWithoutBrackets() {
