@@ -15,7 +15,7 @@ class AmsInlayHintsTest : BasePlatformTestCase() {
             @annotation(rdfs:label "Person"@en)
             Class :Person .
             
-            Class :Student subClassOf :Person .
+            Class :Student subclass of :Person .
         """.trimIndent()
 
         myFixture.configureByText("test.ams", text)
@@ -56,7 +56,7 @@ class AmsInlayHintsTest : BasePlatformTestCase() {
             @annotation(rdfs:label "Mensch"@de)
             Class :Person .
             
-            Class :Student subClassOf :Person .
+            Class :Student subclass of :Person .
         """.trimIndent()
 
         myFixture.configureByText("test_fallback.ams", text)
@@ -84,7 +84,7 @@ class AmsInlayHintsTest : BasePlatformTestCase() {
             Prefix : <http://example.org/> .
             Class "Human" :Person .
             
-            Class :Student subClassOf :Person .
+            Class :Student subclass of :Person .
         """.trimIndent()
 
         myFixture.configureByText("test_inline.ams", text)
@@ -118,7 +118,7 @@ class AmsInlayHintsTest : BasePlatformTestCase() {
             @annotation(skos:definition "A human being")
             Class :Person .
             
-            Class :Student subClassOf :Person .
+            Class :Student subclass of :Person .
         """.trimIndent()
 
         myFixture.configureByText("test_skos.ams", text)
@@ -144,7 +144,7 @@ class AmsInlayHintsTest : BasePlatformTestCase() {
     fun testInlayHintsWithDataPropertyInlineComment() {
         val text = """
             Prefix : <http://example.org/> .
-            DataProperty "Age" :hasAge .
+            Data Property "Age" :hasAge .
             
             Individual :John ; :hasAge 30 .
         """.trimIndent()
@@ -175,9 +175,9 @@ class AmsInlayHintsTest : BasePlatformTestCase() {
             Prefix : <http://example.org/> .
             Datatype "Small Integer" :smallInt .
             
-            Class :SmallThing subClassOf restriction(:hasValue { minInclusive 0 }) .
+            Class :SmallThing subclass of restriction(:hasValue { minInclusive 0 }) .
             // Just a dummy usage of :smallInt to trigger hint
-            Class :Other subClassOf :smallInt .
+            Class :Other subclass of :smallInt .
         """.trimIndent()
 
         myFixture.configureByText("test_datatype_inline.ams", text)

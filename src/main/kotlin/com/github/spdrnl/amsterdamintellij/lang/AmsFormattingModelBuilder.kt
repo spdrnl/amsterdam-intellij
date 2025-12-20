@@ -49,9 +49,14 @@ class AmsFormattingModelBuilder : FormattingModelBuilder {
             .between(colon, curieEmpty).spacing(0, 0, 0, false, 0)
             .between(prefixName, curieEmpty).spacing(0, 0, 0, false, 0)
             // After semicolon: newline
-            .after(semicolon).spacing(0, 0, 1, false, 0)
-            // Space around COLON in prefixes
-            .around(colon).spacing(1, 1, 0, false, 0)
+            .after(semicolon).spacing(0, 0, 1, true, 0)
+            .before(semicolon).spacing(1, 1, 0, false, 0)
+            .after(tokenTypes[OwlDslLexer.COLON]).spacing(0, 0, 0, false, 0)
+            .before(tokenTypes[OwlDslLexer.COLON]).spacing(0, 0, 0, false, 0)
+            // Space around COLON in prefixes (only when it's NOT a CURIE colon)
+            // This is tricky, but let's try to target the Prefix declaration specifically if possible.
+            // Actually, prefix declaration uses COLON as a child.
+            .around(ruleTypes[OwlDslParser.RULE_prefixDecl]).spacing(1, 1, 0, false, 0)
             // Space before DOT at the end of axioms
             .before(dot).spacing(1, 1, 0, false, 0)
             .after(dot).spacing(0, 0, 1, false, 0)
@@ -66,6 +71,9 @@ class AmsFormattingModelBuilder : FormattingModelBuilder {
             // Space before keywords that often start a clause
             .before(tokenTypes[OwlDslLexer.DOMAIN_KW]).spacing(1, 1, 0, false, 0)
             .before(tokenTypes[OwlDslLexer.RANGE_KW]).spacing(1, 1, 0, false, 0)
+            .around(ruleTypes[OwlDslParser.RULE_classClause]).spacing(0, 0, 1, true, 0)
+            .around(ruleTypes[OwlDslParser.RULE_objectPropertyClause]).spacing(0, 0, 1, true, 0)
+            .around(ruleTypes[OwlDslParser.RULE_dataPropertyClause]).spacing(0, 0, 1, true, 0)
     }
 
     private fun getRule(ruleIndex: Int): RuleIElementType {
@@ -136,6 +144,12 @@ class AmsFormattingBlock(
                             OwlDslParser.RULE_individualAxiomBody,
                             OwlDslParser.RULE_propAssertionList -> return Indent.getNormalIndent()
                         }
+                    }
+
+                    // For alt-labels, we need to check the parent's actual type or use a different heuristic
+                    // or just check if the rule name contains "Clause"
+                    if (childType.toString().contains("Clause")) {
+                        return Indent.getNormalIndent()
                     }
 
                     // Also indent if it follows a semicolon

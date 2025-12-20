@@ -24,11 +24,11 @@ class AmsCompletionTest : BasePlatformTestCase() {
         assertTrue(strings.contains("is an"))
         assertTrue(strings.contains("⊑"))
         assertTrue(strings.contains("<=:"))
-        assertTrue(strings.contains("equivalentTo"))
+        assertTrue(strings.contains("equivalent to"))
     }
 
     fun testPropertyKeywords() {
-        myFixture.configureByText("test.ams", "ObjectProperty :p1 <caret>")
+        myFixture.configureByText("test.ams", "Object Property :p1 <caret>")
         myFixture.completeBasic()
         val strings = myFixture.lookupElementStrings
         assertNotNull(strings)
@@ -55,7 +55,7 @@ class AmsCompletionTest : BasePlatformTestCase() {
         val text = """
             Prefix : <http://example.org/> .
             Class :Person .
-            Class :Student subClassOf <caret>
+            Class :Student subclass of <caret>
         """.trimIndent()
         myFixture.configureByText("test.ams", text)
         myFixture.completeBasic()
@@ -84,7 +84,7 @@ class AmsCompletionTest : BasePlatformTestCase() {
             @annotation(rdfs:label "Human Being"@en)
             Class :Person .
             
-            Class :Student subClassOf <caret>
+            Class :Student subclass of <caret>
         """.trimIndent()
         myFixture.configureByText("test.ams", text)
         myFixture.completeBasic()

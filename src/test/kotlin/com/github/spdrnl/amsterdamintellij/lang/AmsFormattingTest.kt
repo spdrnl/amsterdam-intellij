@@ -12,7 +12,7 @@ Prefix : <http://example.org/> .
 Prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 Ontology <http://example.org/test> .
 Class :Person ; subClassOf :Thing ; disjointWith :Organism .
-ObjectProperty :hasChild ; domain :Person ; range :Person .
+Object Property :hasChild ; domain :Person ; range :Person .
         """.trimIndent()
 
         val expected = """Prefix : <http://example.org/> .
@@ -25,7 +25,7 @@ Class :Person ;
     subClassOf :Thing ;
     disjointWith :Organism .
 
-ObjectProperty :hasChild ;
+Object Property :hasChild ;
     domain :Person ;
     range :Person ."""
 

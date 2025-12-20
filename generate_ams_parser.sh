@@ -10,7 +10,7 @@ mkdir -p src/ams/to_ttl/parser
 if command -v antlr4 >/dev/null 2>&1; then
   antlr4 -Dlanguage=Python3 -visitor -no-listener OwlDsl.g4 -o src/ams/to_ttl/parser
 else
-  java org.antlr.v4.Tool -Dlanguage=Python3 -visitor -no-listener antlr/OwlDsl.g4 -o src/ams/to_ttl/parser
+  java org.antlr.v4.Tool -Dlanguage=Python3 -visitor -no-listener src/main/antlr/OwlDsl.g4 -o gen/com/github/spdrnl/amsterdamintellij/parser
 fi
 
 echo "Generated OwlDsl lexer/parser under src/ams/to_ttl/parser"

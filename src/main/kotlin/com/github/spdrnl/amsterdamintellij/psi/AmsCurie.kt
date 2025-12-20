@@ -199,10 +199,14 @@ class AmsCurie(node: ASTNode) : ANTLRPsiNode(node), PsiNamedElement, PsiNameIden
     }
 
     fun isDef(): Boolean {
-        // Recursive search for the first ID token in an axiom
+        // Recursive search for the first ID token in an axiom, skipping annotations
         fun findFirstId(node: com.intellij.psi.PsiElement): com.intellij.psi.PsiElement? {
             if (node is AmsCurie) return node
             for (child in node.children) {
+                if (child is ANTLRPsiNode) {
+                    val type = (child.node.elementType as? RuleIElementType)?.ruleIndex
+                    if (type == OwlDslParser.RULE_annotationBlock || type == OwlDslParser.RULE_ontologyPropertyBlock || type == OwlDslParser.RULE_commentOpt) continue
+                }
                 val found = findFirstId(child)
                 if (found != null) return found
             }
@@ -238,7 +242,8 @@ class AmsCurie(node: ASTNode) : ANTLRPsiNode(node), PsiNamedElement, PsiNameIden
                     idx == OwlDslParser.RULE_objectSubPropertyAxiom ||
                     idx == OwlDslParser.RULE_dataPropertyDomainRangeAxiom ||
                     idx == OwlDslParser.RULE_dataSubPropertyAxiom ||
-                    idx == OwlDslParser.RULE_subPropertyChainAxiom
+                    idx == OwlDslParser.RULE_subPropertyChainAxiom ||
+                    idx == OwlDslParser.RULE_objectInversePropertyAxiom
                 ) {
                     // subject-centric axiom check: is this the first ID?
                     if (findFirstId(curr) === this) return true

@@ -67,10 +67,9 @@ class AmsSyntaxHighlighter : SyntaxHighlighterBase() {
 
             OwlDslLexer.INDIVIDUAL_KW -> arrayOf(INDIVIDUAL_KW)
 
-            OwlDslLexer.CLASS_KW -> arrayOf(CLASS_KW)
+            OwlDslLexer.CLASS_KW, OwlDslLexer.CLASSES_KW -> arrayOf(CLASS_KW)
 
             OwlDslLexer.PREFIX_KW, OwlDslLexer.ONTOLOGY_KW, OwlDslLexer.VERSION_IRI_KW,
-            OwlDslLexer.CLASSES_KW,
             OwlDslLexer.IS_KW, OwlDslLexer.A_KW,
             OwlDslLexer.AN_KW, OwlDslLexer.SUBCLASS_KW, OwlDslLexer.OF_KW,
             OwlDslLexer.EQUIVALENT_KW, OwlDslLexer.TO_KW,
@@ -91,7 +90,10 @@ class AmsSyntaxHighlighter : SyntaxHighlighterBase() {
             OwlDslLexer.ALL_KW, OwlDslLexer.ANY_KW,
             OwlDslLexer.FUNCTIONAL_KW,
             OwlDslLexer.TRANSITIVE_KW, OwlDslLexer.SYMMETRIC_KW,
-            OwlDslLexer.REFLEXIVE_KW, OwlDslLexer.IR_KW, OwlDslLexer.RESTRICTION_KW,
+            OwlDslLexer.ASYMMETRIC_KW,
+            OwlDslLexer.REFLEXIVE_KW,
+            OwlDslLexer.IRREFLEXIVE_KW,
+            OwlDslLexer.IR_KW, OwlDslLexer.RESTRICTION_KW,
             OwlDslLexer.GREATER_KW, OwlDslLexer.THAN_KW, OwlDslLexer.LESS_KW,
             OwlDslLexer.EQUAL_KW, OwlDslLexer.TRUE_KW, OwlDslLexer.FALSE_KW -> arrayOf(KEYWORD)
 

@@ -26,7 +26,7 @@ class AmsCompletionContributor : CompletionContributor() {
                     val parent = position.parent
 
                     val subclassSynonyms = listOf(
-                        "subclass of", "is a", "is an", "⊑", "<=:"
+                        "subclass of", "is subclass of", "is a", "is an", "⊑", "<=:"
                     )
                     val subpropertySynonyms = listOf(
                         "subproperty of", "is subproperty of", "⊑", "<=:"
@@ -63,8 +63,8 @@ class AmsCompletionContributor : CompletionContributor() {
                     // Top-level keywords
                     if (parent is amsFile || (parent is ANTLRPsiNode && (parent.node.elementType as? RuleIElementType)?.ruleIndex == OwlDslParser.RULE_ontology)) {
                         val topLevelKeywords = listOf(
-                            "Prefix", "Ontology", "Class", "ObjectProperty", "DataProperty",
-                            "AnnotationProperty", "Individual", "Datatype", "AllDisjointClasses"
+                            "Prefix", "Ontology", "Class", "Object Property", "Data Property",
+                            "Annotation Property", "Individual", "Datatype", "All disjoint classes"
                         )
                         addKeywords(topLevelKeywords)
 
@@ -85,7 +85,8 @@ class AmsCompletionContributor : CompletionContributor() {
                                         idx == OwlDslParser.RULE_objectPropertyDomainRangeAxiom ||
                                         idx == OwlDslParser.RULE_objectSubPropertyAxiom ||
                                         idx == OwlDslParser.RULE_dataPropertyDomainRangeAxiom ||
-                                        idx == OwlDslParser.RULE_dataSubPropertyAxiom
+                                        idx == OwlDslParser.RULE_dataSubPropertyAxiom ||
+                                        idx == OwlDslParser.RULE_objectInversePropertyAxiom
                                         ) {
                                         foundAxiom = p
                                         break
@@ -104,7 +105,8 @@ class AmsCompletionContributor : CompletionContributor() {
                                             idx == OwlDslParser.RULE_objectPropertyDomainRangeAxiom ||
                                             idx == OwlDslParser.RULE_objectSubPropertyAxiom ||
                                             idx == OwlDslParser.RULE_dataPropertyDomainRangeAxiom ||
-                                            idx == OwlDslParser.RULE_dataSubPropertyAxiom
+                                            idx == OwlDslParser.RULE_dataSubPropertyAxiom ||
+                                            idx == OwlDslParser.RULE_objectInversePropertyAxiom
                                             ) {
                                             foundAxiom = ps
                                             break
@@ -130,7 +132,8 @@ class AmsCompletionContributor : CompletionContributor() {
                                                 idx == OwlDslParser.RULE_objectPropertyDomainRangeAxiom ||
                                                 idx == OwlDslParser.RULE_objectSubPropertyAxiom ||
                                                 idx == OwlDslParser.RULE_dataPropertyDomainRangeAxiom ||
-                                                idx == OwlDslParser.RULE_dataSubPropertyAxiom
+                                                idx == OwlDslParser.RULE_dataSubPropertyAxiom ||
+                                                idx == OwlDslParser.RULE_objectInversePropertyAxiom
                                                 ) {
                                                 foundAxiom = child
                                             }
@@ -149,10 +152,10 @@ class AmsCompletionContributor : CompletionContributor() {
                                     if (beforePrev != null) {
                                         val bpText = beforePrev.text.lowercase()
                                         if (bpText == "class") {
-                                            addKeywords(subclassSynonyms + listOf("equivalentTo", "disjointWith", "disjointUnionOf", "hasKey"))
-                                        } else if (bpText == "objectproperty" || (bpText == "property" && PsiTreeUtil.prevVisibleLeaf(beforePrev)?.text?.lowercase() == "object")) {
-                                            addKeywords(subpropertySynonyms + listOf("domain", "range", "characteristics", "inverseOf"))
-                                        } else if (bpText == "dataproperty" || (bpText == "property" && PsiTreeUtil.prevVisibleLeaf(beforePrev)?.text?.lowercase() == "data")) {
+                                            addKeywords(subclassSynonyms + listOf("equivalent to", "disjoint with", "disjoint union of", "has key"))
+                                        } else if (bpText == "object property" || (bpText == "property" && PsiTreeUtil.prevVisibleLeaf(beforePrev)?.text?.lowercase() == "object")) {
+                                            addKeywords(subpropertySynonyms + listOf("domain", "range", "characteristics", "inverse of"))
+                                        } else if (bpText == "data property" || (bpText == "property" && PsiTreeUtil.prevVisibleLeaf(beforePrev)?.text?.lowercase() == "data")) {
                                             addKeywords(subpropertySynonyms + listOf("domain", "range", "characteristics"))
                                         }
                                     }
@@ -163,14 +166,15 @@ class AmsCompletionContributor : CompletionContributor() {
                                 val ruleIndex = (foundAxiom.node.elementType as? RuleIElementType)?.ruleIndex
                                 if (ruleIndex == OwlDslParser.RULE_classAxiom || ruleIndex == OwlDslParser.RULE_classSubOrEqAxiom) {
                                     val classKeywords = subclassSynonyms + listOf(
-                                        "equivalentTo", "disjointWith", "disjointUnionOf", "hasKey"
+                                        "equivalent to", "disjoint with", "disjoint union of", "has key"
                                     )
                                     addKeywords(classKeywords)
                                 } else if (ruleIndex == OwlDslParser.RULE_objectPropertyAxiom || 
                                            ruleIndex == OwlDslParser.RULE_objectPropertyDomainRangeAxiom || 
-                                           ruleIndex == OwlDslParser.RULE_objectSubPropertyAxiom) {
+                                           ruleIndex == OwlDslParser.RULE_objectSubPropertyAxiom ||
+                                           ruleIndex == OwlDslParser.RULE_objectInversePropertyAxiom) {
                                     val opKeywords = subpropertySynonyms + listOf(
-                                        "domain", "range", "characteristics", "inverseOf"
+                                        "domain", "range", "characteristics", "inverse of"
                                     )
                                     addKeywords(opKeywords)
                                 } else if (ruleIndex == OwlDslParser.RULE_dataPropertyAxiom ||
@@ -200,15 +204,15 @@ class AmsCompletionContributor : CompletionContributor() {
                     // Inside Class Axiom
                     if (isInside(OwlDslParser.RULE_classAxiom) || isInside(OwlDslParser.RULE_classSubOrEqAxiom) || isInside(OwlDslParser.RULE_classClause)) {
                         val classKeywords = subclassSynonyms + listOf(
-                            "equivalentTo", "disjointWith", "disjointUnionOf", "hasKey"
+                            "equivalent to", "disjoint with", "disjoint union of", "has key"
                         )
                         addKeywords(classKeywords)
                     }
 
                     // Inside Object Property Axiom
-                    if (isInside(OwlDslParser.RULE_objectPropertyAxiom) || isInside(OwlDslParser.RULE_objectPropertyClause) || isInside(OwlDslParser.RULE_objectPropertyDomainRangeAxiom) || isInside(OwlDslParser.RULE_objectSubPropertyAxiom)) {
+                    if (isInside(OwlDslParser.RULE_objectPropertyAxiom) || isInside(OwlDslParser.RULE_objectPropertyClause) || isInside(OwlDslParser.RULE_objectPropertyDomainRangeAxiom) || isInside(OwlDslParser.RULE_objectSubPropertyAxiom) || isInside(OwlDslParser.RULE_objectInversePropertyAxiom)) {
                         val opKeywords = subpropertySynonyms + listOf(
-                            "domain", "range", "characteristics", "inverseOf"
+                            "domain", "range", "characteristics", "inverse of"
                         )
                         addKeywords(opKeywords)
                     }

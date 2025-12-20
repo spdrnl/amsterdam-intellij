@@ -170,8 +170,13 @@ object AmsPsiUtil {
     fun findIdNode(node: ANTLRPsiNode): PsiElement? {
         val ruleIElementType = node.node.elementType as? RuleIElementType ?: return null
         val targetRule = when (ruleIElementType.ruleIndex) {
-            OwlDslParser.RULE_classAxiom -> OwlDslParser.RULE_classId
-            OwlDslParser.RULE_objectPropertyAxiom, OwlDslParser.RULE_dataPropertyAxiom -> OwlDslParser.RULE_propId
+            OwlDslParser.RULE_classAxiom, OwlDslParser.RULE_classSubOrEqAxiom -> OwlDslParser.RULE_classId
+            OwlDslParser.RULE_objectPropertyAxiom,
+            OwlDslParser.RULE_objectPropertyDomainRangeAxiom,
+            OwlDslParser.RULE_objectSubPropertyAxiom,
+            OwlDslParser.RULE_dataPropertyAxiom,
+            OwlDslParser.RULE_dataPropertyDomainRangeAxiom,
+            OwlDslParser.RULE_dataSubPropertyAxiom -> OwlDslParser.RULE_propId
             OwlDslParser.RULE_individualAxiom -> OwlDslParser.RULE_individualId
             OwlDslParser.RULE_annotationPropertyAxiom -> OwlDslParser.RULE_propId
             OwlDslParser.RULE_datatypeAxiom -> OwlDslParser.RULE_datatypeId
@@ -205,7 +210,8 @@ object AmsPsiUtil {
                     type == OwlDslParser.RULE_annotationPropertyAxiom ||
                     type == OwlDslParser.RULE_datatypeAxiom ||
                     type == OwlDslParser.RULE_individualAxiom ||
-                    type == OwlDslParser.RULE_subPropertyChainAxiom
+                    type == OwlDslParser.RULE_subPropertyChainAxiom ||
+                    type == OwlDslParser.RULE_objectInversePropertyAxiom
                 ) {
                     return p
                 }

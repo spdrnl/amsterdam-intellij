@@ -22,7 +22,7 @@ class amsStructureViewTest : BasePlatformTestCase() {
             Class :C2 .
             
             @annotation(rdfs:label "My Property")
-            ObjectProperty :p1 .
+            Object Property :p1 .
         """.trimIndent()
 
         val psiFile = myFixture.configureByText("test.ams", text)
@@ -76,9 +76,9 @@ class amsStructureViewTest : BasePlatformTestCase() {
 
     fun testStructureViewIcons() {
         val text = """
-            DataProperty :dp1 .
-            AnnotationProperty :ap1 .
-            AllDisjointClasses(:C1, :C2) .
+            Data Property :dp1 .
+            Annotation Property :ap1 .
+            All disjoint classes(:C1, :C2) .
         """.trimIndent()
 
         val psiFile = myFixture.configureByText("test2.ams", text)
@@ -114,7 +114,7 @@ class amsStructureViewTest : BasePlatformTestCase() {
             Class :B .
             Ontology <http://example.org/test> .
             Class :A .
-            DataProperty :dp1 .
+            Data Property :dp1 .
         """.trimIndent()
 
         val psiFile = myFixture.configureByText("test_sort.ams", text)
@@ -224,7 +224,7 @@ class amsStructureViewTest : BasePlatformTestCase() {
 
     fun testStructureViewAnnotationPropertyFilter() {
         val text = """
-            AnnotationProperty :ap1 .
+            Annotation Property :ap1 .
             Class :A .
         """.trimIndent()
 
