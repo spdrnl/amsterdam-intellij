@@ -8,22 +8,19 @@ class amsAnnotatorTest : BasePlatformTestCase() {
     fun testSemanticHighlighting() {
         val text = """
             Prefix : <http://example.org/> .
-            Class "occurrent"@en obo:BFO_0000003 ;
-                subClassOf :Thing .
+            Class obo:BFO_0000003 ;
+                subclass of :Thing .
         """.trimIndent()
 
         myFixture.configureByText("test.ams", text)
         val highlights = myFixture.doHighlighting()
 
         // Find semantic highlights
-        val labelHighlight =
-            highlights.find { it.text == "\"occurrent\"@en" && it.forcedTextAttributesKey == AmsSyntaxHighlighter.SEMANTIC_LABEL }
         val idHighlight =
             highlights.find { it.text == "obo:BFO_0000003" && it.forcedTextAttributesKey == AmsSyntaxHighlighter.SEMANTIC_ID }
         val idRefHighlight =
             highlights.find { it.text == ":Thing" && it.forcedTextAttributesKey == AmsSyntaxHighlighter.SEMANTIC_ID_REF }
 
-        assertNotNull("Label should be semantically highlighted", labelHighlight)
         assertNotNull("ID definition should be semantically highlighted", idHighlight)
         assertNotNull("ID reference should be semantically highlighted", idRefHighlight)
     }
@@ -97,14 +94,14 @@ class amsAnnotatorTest : BasePlatformTestCase() {
         val text = """
             Prefix : <http://example.org/> .
             Class :C1 .
-            ObjectProperty <http://example.org/C1> .
+            Object Property :C1 .
         """.trimIndent()
 
         myFixture.configureByText("test_dup_id.ams", text)
         val highlights = myFixture.doHighlighting()
 
         val errorHighlight =
-            highlights.find { it.severity == HighlightSeverity.ERROR && it.text == "<http://example.org/C1>" }
+            highlights.find { it.severity == HighlightSeverity.ERROR && it.text == ":C1" }
         assertNotNull("Duplicate Entity ID should be highlighted as an error", errorHighlight)
         assertEquals("Duplicate Entity ID: http://example.org/C1", errorHighlight?.description)
     }

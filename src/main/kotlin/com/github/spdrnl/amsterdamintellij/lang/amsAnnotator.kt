@@ -37,10 +37,16 @@ class amsAnnotator : Annotator {
                     OwlDslParser.RULE_propId,
                     OwlDslParser.RULE_individualId,
                     OwlDslParser.RULE_datatypeId,
-                    OwlDslParser.RULE_namespaceIRI -> {
+                    OwlDslParser.RULE_namespaceIRI,
+                    OwlDslParser.RULE_fullIRI -> {
                         if (element.text == "IntellijIdeaRulezzz") return
 
-                        val attributes = if (element is AmsCurie && element.isDef()) {
+                        val isDefinition = if (element is AmsCurie) element.isDef() else {
+                            // Fallback for non-AmsCurie nodes that might be IDs
+                            false
+                        }
+
+                        val attributes = if (isDefinition) {
                             AmsSyntaxHighlighter.SEMANTIC_ID
                         } else {
                             AmsSyntaxHighlighter.SEMANTIC_ID_REF
@@ -54,7 +60,7 @@ class amsAnnotator : Annotator {
                         if (elementType.ruleIndex != OwlDslParser.RULE_namespaceIRI) {
                             checkUndefinedPrefix(element, holder)
                         }
-                        if (element is AmsCurie && element.isDef()) {
+                        if (element is AmsCurie && isDefinition) {
                             checkDuplicateEntityId(element, holder)
                         }
                     }

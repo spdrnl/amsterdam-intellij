@@ -195,8 +195,13 @@ object AmsPsiUtil {
             if (p is ANTLRPsiNode) {
                 val type = (p.node.elementType as? RuleIElementType)?.ruleIndex
                 if (type == OwlDslParser.RULE_classAxiom ||
+                    type == OwlDslParser.RULE_classSubOrEqAxiom ||
                     type == OwlDslParser.RULE_objectPropertyAxiom ||
+                    type == OwlDslParser.RULE_objectPropertyDomainRangeAxiom ||
+                    type == OwlDslParser.RULE_objectSubPropertyAxiom ||
                     type == OwlDslParser.RULE_dataPropertyAxiom ||
+                    type == OwlDslParser.RULE_dataPropertyDomainRangeAxiom ||
+                    type == OwlDslParser.RULE_dataSubPropertyAxiom ||
                     type == OwlDslParser.RULE_annotationPropertyAxiom ||
                     type == OwlDslParser.RULE_datatypeAxiom ||
                     type == OwlDslParser.RULE_individualAxiom ||

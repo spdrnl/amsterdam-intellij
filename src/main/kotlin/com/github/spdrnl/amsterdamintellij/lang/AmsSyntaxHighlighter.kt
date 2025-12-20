@@ -52,6 +52,7 @@ class AmsSyntaxHighlighter : SyntaxHighlighterBase() {
         val antlrTokenType = tokenType.antlrTokenType
         return when (antlrTokenType) {
             OwlDslLexer.CURIE, OwlDslLexer.CURIE_EMPTY, OwlDslLexer.PREFIX_NAME -> arrayOf(ID)
+            OwlDslLexer.IDENTIFIER -> arrayOf(DEFAULT_TEXT)
             OwlDslLexer.STRING, OwlDslLexer.STRING3 -> arrayOf(STRING)
             OwlDslLexer.LINE_COMMENT -> arrayOf(LINE_COMMENT)
             OwlDslLexer.BLOCK_COMMENT -> arrayOf(BLOCK_COMMENT)
@@ -60,38 +61,37 @@ class AmsSyntaxHighlighter : SyntaxHighlighterBase() {
             OwlDslLexer.ANNOTATION, OwlDslLexer.PROPERTY -> arrayOf(ANNOTATION_MENTION)
             OwlDslLexer.LANGTAG -> arrayOf(PRE_IRI)
 
-            OwlDslLexer.DATA_PROPERTY_KW, OwlDslLexer.DATA_KW, OwlDslLexer.EQUIVALENT_DATA_PROPERTIES_KW,
-            OwlDslLexer.DISJOINT_DATA_PROPERTIES_KW, OwlDslLexer.ANNOTATION_PROPERTY_KW, OwlDslLexer.ANNOTATION_KW,
-            OwlDslLexer.DATATYPE_KW, OwlDslLexer.DATATYPE_DEFINITION_KW, OwlDslLexer.SUB_PROPERTY_CHAIN_KW,
-            OwlDslLexer.SUBPROPERTY_CHAIN_KW, OwlDslLexer.CHAIN_KW -> arrayOf(PROP_KW)
+            OwlDslLexer.DATA_KW, OwlDslLexer.ANNOTATION_KW,
+            OwlDslLexer.DATATYPE_KW, OwlDslLexer.DATATYPE_DEFINITION_KW,
+            OwlDslLexer.SUBPROPERTY_KW, OwlDslLexer.CHAIN_KW -> arrayOf(PROP_KW)
 
             OwlDslLexer.INDIVIDUAL_KW -> arrayOf(INDIVIDUAL_KW)
 
             OwlDslLexer.CLASS_KW -> arrayOf(CLASS_KW)
 
             OwlDslLexer.PREFIX_KW, OwlDslLexer.ONTOLOGY_KW, OwlDslLexer.VERSION_IRI_KW,
-            OwlDslLexer.EQUIVALENT_CLASSES_KW, OwlDslLexer.ALL_DISJOINT_CLASSES_KW,
-            OwlDslLexer.SUB_CLASS_OF_KW, OwlDslLexer.IS_KW, OwlDslLexer.A_KW,
+            OwlDslLexer.CLASSES_KW,
+            OwlDslLexer.IS_KW, OwlDslLexer.A_KW,
             OwlDslLexer.AN_KW, OwlDslLexer.SUBCLASS_KW, OwlDslLexer.OF_KW,
-            OwlDslLexer.EQUIVALENT_TO_KW, OwlDslLexer.EQUIVALENT_KW, OwlDslLexer.TO_KW,
-            OwlDslLexer.DISJOINT_WITH_KW, OwlDslLexer.DISJOINT_KW, OwlDslLexer.WITH_KW,
-            OwlDslLexer.DISJOINT_UNION_OF_KW, OwlDslLexer.UNION_KW, OwlDslLexer.HAS_KW,
-            OwlDslLexer.KEY_KW, OwlDslLexer.OBJECT_PROPERTY_KW, OwlDslLexer.OBJECT_KW,
-            OwlDslLexer.PROPERTY_KW, OwlDslLexer.EQUIVALENT_OBJECT_PROPERTIES_KW, OwlDslLexer.DISJOINT_OBJECT_PROPERTIES_KW,
-            OwlDslLexer.SUB_PROPERTY_OF_KW, OwlDslLexer.SUBPROPERTY_KW, OwlDslLexer.DOMAIN_KW,
+            OwlDslLexer.EQUIVALENT_KW, OwlDslLexer.TO_KW,
+            OwlDslLexer.DISJOINT_KW, OwlDslLexer.WITH_KW,
+            OwlDslLexer.UNION_KW, OwlDslLexer.HAS_KW,
+            OwlDslLexer.KEY_KW, OwlDslLexer.OBJECT_KW,
+            OwlDslLexer.PROPERTY_KW,
+            OwlDslLexer.DOMAIN_KW,
             OwlDslLexer.RANGE_KW, OwlDslLexer.CHARACTERISTICS_KW, OwlDslLexer.INVERSE_KW,
-            OwlDslLexer.TYPE_KW, OwlDslLexer.SAME_AS_KW, OwlDslLexer.SAME_KW,
-            OwlDslLexer.AS_KW, OwlDslLexer.DIFFERENT_FROM_KW, OwlDslLexer.DIFFERENT_KW,
+            OwlDslLexer.TYPE_KW, OwlDslLexer.SAME_KW,
+            OwlDslLexer.AS_KW, OwlDslLexer.DIFFERENT_KW,
             OwlDslLexer.FROM_KW, OwlDslLexer.NOT_KW, OwlDslLexer.AND_KW,
             OwlDslLexer.OR_KW, OwlDslLexer.THING_KW, OwlDslLexer.NOTHING_KW,
-            OwlDslLexer.SOME_KW, OwlDslLexer.ONLY_KW, OwlDslLexer.HAS_VALUE_KW,
+            OwlDslLexer.SOME_KW, OwlDslLexer.ONLY_KW, OwlDslLexer.VALUE_KW,
             OwlDslLexer.MIN_KW, OwlDslLexer.MAX_KW, OwlDslLexer.EXACTLY_KW,
             OwlDslLexer.THAT_KW, OwlDslLexer.AT_KW, OwlDslLexer.LEAST_KW,
-            OwlDslLexer.MOST_KW, OwlDslLexer.ONE_OF_KW, OwlDslLexer.ONE_KW,
-            OwlDslLexer.ALL_OF_KW, OwlDslLexer.ALL_KW, OwlDslLexer.ANY_OF_KW,
-            OwlDslLexer.ANY_KW, OwlDslLexer.FUNCTIONAL_KW, OwlDslLexer.INVERSE_FUNCTIONAL_KW,
-            OwlDslLexer.TRANSITIVE_KW, OwlDslLexer.SYMMETRIC_KW, OwlDslLexer.ASYMMETRIC_KW,
-            OwlDslLexer.REFLEXIVE_KW, OwlDslLexer.IRREFLEXIVE_KW, OwlDslLexer.RESTRICTION_KW,
+            OwlDslLexer.MOST_KW, OwlDslLexer.ONE_KW,
+            OwlDslLexer.ALL_KW, OwlDslLexer.ANY_KW,
+            OwlDslLexer.FUNCTIONAL_KW,
+            OwlDslLexer.TRANSITIVE_KW, OwlDslLexer.SYMMETRIC_KW,
+            OwlDslLexer.REFLEXIVE_KW, OwlDslLexer.IR_KW, OwlDslLexer.RESTRICTION_KW,
             OwlDslLexer.GREATER_KW, OwlDslLexer.THAN_KW, OwlDslLexer.LESS_KW,
             OwlDslLexer.EQUAL_KW, OwlDslLexer.TRUE_KW, OwlDslLexer.FALSE_KW -> arrayOf(KEYWORD)
 

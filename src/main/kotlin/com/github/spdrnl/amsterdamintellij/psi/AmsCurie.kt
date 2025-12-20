@@ -199,14 +199,56 @@ class AmsCurie(node: ASTNode) : ANTLRPsiNode(node), PsiNamedElement, PsiNameIden
     }
 
     fun isDef(): Boolean {
-        val ruleIndex = (node.elementType as? RuleIElementType)?.ruleIndex ?: return false
+        // Recursive search for the first ID token in an axiom
+        fun findFirstId(node: com.intellij.psi.PsiElement): com.intellij.psi.PsiElement? {
+            if (node is AmsCurie) return node
+            for (child in node.children) {
+                val found = findFirstId(child)
+                if (found != null) return found
+            }
+            return null
+        }
 
-        return ruleIndex == OwlDslParser.RULE_classId ||
-                ruleIndex == OwlDslParser.RULE_propId ||
-                ruleIndex == OwlDslParser.RULE_datatypeId ||
-                ruleIndex == OwlDslParser.RULE_individualId ||
-                ruleIndex == OwlDslParser.RULE_entityId ||
-                ruleIndex == OwlDslParser.RULE_namespaceIRI
+        val nodeType = node.elementType
+        var rIdx = if (nodeType is RuleIElementType) nodeType.ruleIndex else -1
+        
+        fun isIdRule(idx: Int) = idx == OwlDslParser.RULE_classId ||
+                idx == OwlDslParser.RULE_propId ||
+                idx == OwlDslParser.RULE_datatypeId ||
+                idx == OwlDslParser.RULE_individualId ||
+                idx == OwlDslParser.RULE_entityId ||
+                idx == OwlDslParser.RULE_namespaceIRI
+
+        if (isIdRule(rIdx)) return true
+
+        var curr: com.intellij.psi.PsiElement? = this
+        while (curr != null && curr !is amsFile) {
+            val type = curr.node.elementType
+            if (type is RuleIElementType) {
+                val idx = type.ruleIndex
+                if (isIdRule(idx)) return true
+                if (idx == OwlDslParser.RULE_classAxiom || 
+                    idx == OwlDslParser.RULE_objectPropertyAxiom || 
+                    idx == OwlDslParser.RULE_dataPropertyAxiom ||
+                    idx == OwlDslParser.RULE_individualAxiom ||
+                    idx == OwlDslParser.RULE_annotationPropertyAxiom ||
+                    idx == OwlDslParser.RULE_datatypeAxiom ||
+                    idx == OwlDslParser.RULE_classSubOrEqAxiom ||
+                    idx == OwlDslParser.RULE_objectPropertyDomainRangeAxiom ||
+                    idx == OwlDslParser.RULE_objectSubPropertyAxiom ||
+                    idx == OwlDslParser.RULE_dataPropertyDomainRangeAxiom ||
+                    idx == OwlDslParser.RULE_dataSubPropertyAxiom ||
+                    idx == OwlDslParser.RULE_subPropertyChainAxiom
+                ) {
+                    // subject-centric axiom check: is this the first ID?
+                    if (findFirstId(curr) === this) return true
+                    break 
+                }
+            }
+            curr = curr.parent
+        }
+
+        return false
     }
 
     fun getFullIri(): String? {

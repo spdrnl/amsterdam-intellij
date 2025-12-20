@@ -44,23 +44,15 @@ class amsFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, amsLan
     }
 
     private fun getCaches(): Triple<Map<String, List<AmsCurie>>, Map<String, List<AmsCurie>>, List<AmsCurie>> {
-        println("[DEBUG_LOG] getCaches called on $this")
         return CachedValuesManager.getCachedValue(this) {
-            println("[DEBUG_LOG] getCaches computation started for $this")
             val allCuries = mutableListOf<AmsCurie>()
             PsiTreeUtil.processElements(this) { element ->
-                if (element.javaClass.simpleName.contains("Curie")) {
-                    println("[DEBUG_LOG]   Found potential Curie: ${element.javaClass.name}, is AmsCurie: ${element is AmsCurie}")
-                }
                 if (element is AmsCurie) {
                     allCuries.add(element)
                 }
                 true
             }
-            println("[DEBUG_LOG] getCaches: found ${allCuries.size} AmsCurie nodes")
             val defs = allCuries.filter { it.isDef() }
-            println("[DEBUG_LOG] getCaches: found ${defs.size} definitions")
-            for (def in defs) println("[DEBUG_LOG]   Def: '${def.text}', isDef: ${def.isDef()}")
             val iriMap = defs.groupBy { it.getFullIri() ?: "" }.filterKeys { it.isNotEmpty() }
             val textMap = defs.groupBy { it.text }
             CachedValueProvider.Result.create(Triple(iriMap, textMap, defs), this)
@@ -68,7 +60,6 @@ class amsFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, amsLan
     }
 
     fun getAllDefinitions(): List<AmsCurie> {
-        println("[DEBUG_LOG] getAllDefinitions called on $this")
         return getCaches().third
     }
 

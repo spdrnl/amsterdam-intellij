@@ -64,11 +64,8 @@ class AmsFormattingModelBuilder : FormattingModelBuilder {
             .around(tokenTypes[OwlDslLexer.SOME_SYM]).spacing(1, 1, 0, false, 0)
             .around(tokenTypes[OwlDslLexer.ONLY_SYM]).spacing(1, 1, 0, false, 0)
             // Space before keywords that often start a clause
-            .before(tokenTypes[OwlDslLexer.SUB_CLASS_OF_KW]).spacing(1, 1, 0, false, 0)
             .before(tokenTypes[OwlDslLexer.DOMAIN_KW]).spacing(1, 1, 0, false, 0)
             .before(tokenTypes[OwlDslLexer.RANGE_KW]).spacing(1, 1, 0, false, 0)
-            .before(tokenTypes[OwlDslLexer.DISJOINT_WITH_KW]).spacing(1, 1, 0, false, 0)
-            .before(tokenTypes[OwlDslLexer.EQUIVALENT_TO_KW]).spacing(1, 1, 0, false, 0)
     }
 
     private fun getRule(ruleIndex: Int): RuleIElementType {

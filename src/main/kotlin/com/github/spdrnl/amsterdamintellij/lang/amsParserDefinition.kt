@@ -65,19 +65,30 @@ class amsParserDefinition : ParserDefinition {
 
     override fun createElement(node: ASTNode?): PsiElement {
         val elementType = node!!.elementType
-        if (elementType is RuleIElementType) {
-            when (elementType.ruleIndex) {
-                OwlDslParser.RULE_prefixDecl -> return AmsPrefixHeader(node)
-                OwlDslParser.RULE_classId,
-                OwlDslParser.RULE_propId,
-                OwlDslParser.RULE_datatypeId,
-                OwlDslParser.RULE_individualId,
-                OwlDslParser.RULE_entityUsage,
-                OwlDslParser.RULE_entityId,
-                OwlDslParser.RULE_fullIRI,
-                OwlDslParser.RULE_namespaceIRI -> return AmsCurie(node)
+        val text = node.text
+        
+        val tokenTypes = PSIElementTypeFactory.getTokenIElementTypes(amsLanguage.INSTANCE)
+        val isCurieToken = elementType == tokenTypes[com.github.spdrnl.amsterdamintellij.parser.OwlDslLexer.CURIE] ||
+                           elementType == tokenTypes[com.github.spdrnl.amsterdamintellij.parser.OwlDslLexer.CURIE_EMPTY] ||
+                           elementType == tokenTypes[com.github.spdrnl.amsterdamintellij.parser.OwlDslLexer.IRI] ||
+                           elementType == tokenTypes[com.github.spdrnl.amsterdamintellij.parser.OwlDslLexer.IDENTIFIER]
 
-                OwlDslParser.RULE_classAxiom -> return org.antlr.intellij.adaptor.psi.ANTLRPsiNode(node)
+        if (isCurieToken) {
+            return AmsCurie(node)
+        }
+
+        if (elementType is RuleIElementType) {
+            val idx = elementType.ruleIndex
+            if (idx == OwlDslParser.RULE_prefixDecl) return AmsPrefixHeader(node)
+            if (idx == OwlDslParser.RULE_classId ||
+                idx == OwlDslParser.RULE_propId ||
+                idx == OwlDslParser.RULE_datatypeId ||
+                idx == OwlDslParser.RULE_individualId ||
+                idx == OwlDslParser.RULE_entityUsage ||
+                idx == OwlDslParser.RULE_entityId ||
+                idx == OwlDslParser.RULE_fullIRI ||
+                idx == OwlDslParser.RULE_namespaceIRI) {
+                return AmsCurie(node)
             }
         }
 

@@ -1,0 +1,191 @@
+Prefix :  <http://example.org/museum/>.
+Prefix xsd:  <http://www.w3.org/2001/XMLSchema#>.
+Prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
+Prefix owl:  <http://www.w3.org/2002/07/owl#>.
+
+Annotation property rdfs:label.
+Annotation property rdfs:comment.
+
+Ontology <http://example.org/museum> versionIRI <http://example.org/museum/1.0>.
+
+# --- Properties -------------------------------------------------------------
+
+# Object properties with has characteristics, domains/ranges, subproperty, inverse‑of
+Object property :hasPart ;
+    has characteristics( transitive ) ;
+    has domain :Artifact ;
+    has range  :Artifact.
+
+Object property :partOf ;
+    has characteristics( transitive ) ;
+    is subproperty of inverse of :hasPart.
+
+Object property :isExhibitedAt ;
+    has domain :Artifact ;
+    has range  :ExhibitionSpace.
+
+Object property :locatedIn ;
+    has characteristics( transitive ) ;
+    has domain :ExhibitionSpace ;
+    has range  :Building.
+
+Object property :createdBy ;
+    has domain :Artifact ;
+    has range  :Person ;
+    is subproperty of inverse of :creates.
+
+Object property :creates ;
+    has domain :Person ;
+    has range  :Artifact ;
+    has characteristics( functional ).
+
+# Property chain (uses configured chain separator, typically "o")
+# Read as: exhibitsIn o locatedIn -> locatedIn
+Object property :exhibitsIn ;
+    has domain :Artifact ;
+    has range  :ExhibitionSpace.
+
+# Property chain axiom (phrases-friendly variant supported by grammar)
+SubPropertyChain( :isExhibitedAt then :locatedIn ) is subproperty of :locatedIn.
+
+# Data property with facets
+Data property :createdInYear ;
+    has domain :Artifact ;
+    has range xsd:gYear ;
+    has characteristics( functional ).
+
+Data property :accessionNumber ;
+    has domain :Artifact ;
+    has range xsd:string ;
+    has characteristics( functional ).
+
+# Annotation property used below
+Annotation property :provenanceNote.
+
+# --- Classes ---------------------------------------------------------------
+
+@annotation( rdfs:label "Artifact"@en )
+Class :Artifact.
+
+@annotation( rdfs:label "Painting"@en )
+@annotation( rdfs:comment "A painted artifact, typically on canvas or panel."@en )
+Class :Painting ;
+    ⊑ :Artifact ;
+    is disjoint with :Sculpture.
+
+@annotation( rdfs:label "Sculpture"@en )
+Class :Sculpture ;
+    ⊑ :Artifact.
+
+@annotation( rdfs:label "Person"@en )
+Class :Person.
+
+@annotation( rdfs:label "Exhibition Space"@en )
+Class :ExhibitionSpace ;
+    is disjoint union of ( :GalleryRoom, :Hallway ).
+
+Class :GalleryRoom ;
+    is subclass of :ExhibitionSpace.
+
+Class :Hallway ;
+    ⊑ :ExhibitionSpace.
+
+@annotation( rdfs:label "Building"@en )
+Class :Building.
+
+# Equivalent class using n‑ary heads (language mode drops inner "is")
+Class :Masterpiece ;
+    is equivalent to any of (
+        :Painting that :hasPart some :Frame,
+        :Sculpture that :hasPart some :Pedestal
+    ).
+
+# Another equivalent class using allOf and oneOf
+Class :LoanedWork ;
+    is equivalent to all of (
+        :Artifact that :isExhibitedAt some :GalleryRoom,
+        :Artifact that :isExhibitedAt only :ExhibitionSpace
+    ).
+
+Class :SignatureStyle ;
+    is equivalent to one of ( :Impressionism, :Cubism, :Baroque ).
+
+Class :Impressionism.
+Class :Cubism.
+Class :Baroque.
+
+# Cardinalities in property‑first order with connector "that" (no inner "is")
+Class :Diptych ;
+    ⊑ :Painting that :hasPart exactly 2 :Painting.
+
+Class :LargeWork ;
+    ⊑ :Artifact that :hasPart at least 3 :Artifact.
+
+Class :MinimalWork ;
+    is an :Artifact that :hasPart at most 1 :Artifact.
+
+# Data restrictions
+Class :HistoricWork ;
+    ⊑ :Artifact that :createdInYear some xsd:gYear.
+
+Class :ModernWork ;
+    ⊑ :Artifact that :createdInYear some xsd:gYear ;
+    ⊑ :Artifact that :createdInYear only xsd:gYear.
+
+# HasKey for identification
+Class :CataloguedWork ;
+    is a :Artifact ;
+    has key ( :accessionNumber ).
+
+# --- Individuals -----------------------------------------------------------
+
+Individual :monaLisa is a :Painting ;
+    :createdBy :leonardoDaVinci ;
+    :createdInYear "1503"^^xsd:gYear ;
+    :accessionNumber "INV 779" ;
+    :isExhibitedAt :louvreRoom711 ;
+    is same as :laGioconda.
+
+Individual :laGioconda is a :Painting ;
+    is different from :someOtherPainting.
+
+Individual :leonardoDaVinci is a :Person.
+
+Individual :louvre is a :Building.
+
+Individual :louvreRoom711 is a :GalleryRoom ;
+    :locatedIn :louvre.
+
+# --- Inline annotations on axioms/entities --------------------------------
+
+@annotation( :provenanceNote "Imported from museum DB on 2024‑03‑10"@en )
+Class :Painting.
+
+@annotation( rdfs:comment "Created by relation is functional for this dataset"@en )
+Object property :creates ; has characteristics( functional ).
+
+# --- Faceted data ranges (new) ---------------------------------------------
+
+# Language mode: use leading verbs ("has …") and readable facet phrases
+# Numeric range with two bounds (maps to minInclusive + maxExclusive)
+Data property :price ;
+    has range restriction xsd:decimal { at least 0, less than 1 }.
+
+# Equality on ordered type (maps to minInclusive == maxInclusive)
+Data property :starts ;
+    has range restriction xsd:gYear { equal to 2000 }.
+
+# Equality on non‑ordered (maps to dataOneOf singleton)
+Data property :code ;
+    has range restriction xsd:string { equal to "A" }.
+
+# Single‑bound variants
+Data property :age ;
+    has range restriction integer { at least 0 }.
+
+Data property :rating ;
+    has range restriction xsd:decimal { at most 5 }.
+
+# Phrase mode examples (no leading verb): same semantics, different style
+DataProperty :discount ; range restriction xsd:decimal { >= 0, <= 1 }.
+DataProperty :yearClosed ; range restriction xsd:gYear { equal to 2010 }.

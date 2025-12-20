@@ -26,10 +26,10 @@ class AmsCompletionContributor : CompletionContributor() {
                     val parent = position.parent
 
                     val subclassSynonyms = listOf(
-                        "subClassOf", "is a", "is an", "is subclass of", "⊑", "<=:"
+                        "subclass of", "is a", "is an", "⊑", "<=:"
                     )
                     val subpropertySynonyms = listOf(
-                        "subPropertyOf", "is subproperty of", "⊑", "<=:"
+                        "subproperty of", "is subproperty of", "⊑", "<=:"
                     )
 
                     fun addKeywords(keywords: List<String>) {
@@ -68,29 +68,114 @@ class AmsCompletionContributor : CompletionContributor() {
                         )
                         addKeywords(topLevelKeywords)
 
-                        // If at top-level but preceded by a class definition, also suggest class keywords
+                        // If at top-level but preceded by an axiom, also suggest its keywords
                         val prev = PsiTreeUtil.prevVisibleLeaf(position)
                         if (prev != null) {
-                            val prevAxiom = PsiTreeUtil.getParentOfType(prev, ANTLRPsiNode::class.java)?.let {
-                                AmsPsiUtil.findAxiom(it)
-                            } as? ANTLRPsiNode
+                            var foundAxiom: ANTLRPsiNode? = null
+                            
+                            // Find the preceding axiom by scanning backward from the current position
+                            var p: com.intellij.psi.PsiElement? = prev
+                            while (p != null && p !is amsFile) {
+                                if (p is ANTLRPsiNode) {
+                                    val idx = (p.node.elementType as? RuleIElementType)?.ruleIndex
+                                    if (idx == OwlDslParser.RULE_classAxiom || 
+                                        idx == OwlDslParser.RULE_objectPropertyAxiom || 
+                                        idx == OwlDslParser.RULE_dataPropertyAxiom ||
+                                        idx == OwlDslParser.RULE_classSubOrEqAxiom ||
+                                        idx == OwlDslParser.RULE_objectPropertyDomainRangeAxiom ||
+                                        idx == OwlDslParser.RULE_objectSubPropertyAxiom ||
+                                        idx == OwlDslParser.RULE_dataPropertyDomainRangeAxiom ||
+                                        idx == OwlDslParser.RULE_dataSubPropertyAxiom
+                                        ) {
+                                        foundAxiom = p
+                                        break
+                                    }
+                                }
+                                
+                                // Check siblings of p
+                                var ps = p.prevSibling
+                                while (ps != null) {
+                                    if (ps is ANTLRPsiNode) {
+                                        val idx = (ps.node.elementType as? RuleIElementType)?.ruleIndex
+                                        if (idx == OwlDslParser.RULE_classAxiom || 
+                                            idx == OwlDslParser.RULE_objectPropertyAxiom || 
+                                            idx == OwlDslParser.RULE_dataPropertyAxiom ||
+                                            idx == OwlDslParser.RULE_classSubOrEqAxiom ||
+                                            idx == OwlDslParser.RULE_objectPropertyDomainRangeAxiom ||
+                                            idx == OwlDslParser.RULE_objectSubPropertyAxiom ||
+                                            idx == OwlDslParser.RULE_dataPropertyDomainRangeAxiom ||
+                                            idx == OwlDslParser.RULE_dataSubPropertyAxiom
+                                            ) {
+                                            foundAxiom = ps
+                                            break
+                                        }
+                                    }
+                                    ps = ps.prevSibling
+                                }
+                                if (foundAxiom != null) break
+                                p = p.parent
+                            }
+                            
+                            // If still nothing, check children of the file (top-level)
+                            if (foundAxiom == null) {
+                                val file = position.containingFile as? amsFile
+                                file?.children?.forEach { child ->
+                                    if (child.textRange.endOffset <= prev.textRange.startOffset) {
+                                        if (child is ANTLRPsiNode) {
+                                            val idx = (child.node.elementType as? RuleIElementType)?.ruleIndex
+                                            if (idx == OwlDslParser.RULE_classAxiom || 
+                                                idx == OwlDslParser.RULE_objectPropertyAxiom || 
+                                                idx == OwlDslParser.RULE_dataPropertyAxiom ||
+                                                idx == OwlDslParser.RULE_classSubOrEqAxiom ||
+                                                idx == OwlDslParser.RULE_objectPropertyDomainRangeAxiom ||
+                                                idx == OwlDslParser.RULE_objectSubPropertyAxiom ||
+                                                idx == OwlDslParser.RULE_dataPropertyDomainRangeAxiom ||
+                                                idx == OwlDslParser.RULE_dataSubPropertyAxiom
+                                                ) {
+                                                foundAxiom = child
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            // Special case: if prev leaf was an ID and we're at top level, 
+                            // it's likely the start of a declaration.
+                            if (foundAxiom == null) {
+                                val prevText = prev.text
+                                if (prevText.startsWith(":") || prevText.startsWith("<")) {
+                                    // Look at the leaf before THAT to see if it's a keyword
+                                    val beforePrev = PsiTreeUtil.prevVisibleLeaf(prev)
+                                    if (beforePrev != null) {
+                                        val bpText = beforePrev.text.lowercase()
+                                        if (bpText == "class") {
+                                            addKeywords(subclassSynonyms + listOf("equivalentTo", "disjointWith", "disjointUnionOf", "hasKey"))
+                                        } else if (bpText == "objectproperty" || (bpText == "property" && PsiTreeUtil.prevVisibleLeaf(beforePrev)?.text?.lowercase() == "object")) {
+                                            addKeywords(subpropertySynonyms + listOf("domain", "range", "characteristics", "inverseOf"))
+                                        } else if (bpText == "dataproperty" || (bpText == "property" && PsiTreeUtil.prevVisibleLeaf(beforePrev)?.text?.lowercase() == "data")) {
+                                            addKeywords(subpropertySynonyms + listOf("domain", "range", "characteristics"))
+                                        }
+                                    }
+                                }
+                            }
 
-                            if (prevAxiom != null) {
-                                val ruleIndex = (prevAxiom.node.elementType as? RuleIElementType)?.ruleIndex
-                                if (ruleIndex == OwlDslParser.RULE_classAxiom) {
+                            if (foundAxiom != null) {
+                                val ruleIndex = (foundAxiom.node.elementType as? RuleIElementType)?.ruleIndex
+                                if (ruleIndex == OwlDslParser.RULE_classAxiom || ruleIndex == OwlDslParser.RULE_classSubOrEqAxiom) {
                                     val classKeywords = subclassSynonyms + listOf(
-                                        "equivalentTo",
-                                        "disjointWith",
-                                        "disjointUnionOf",
-                                        "hasKey"
+                                        "equivalentTo", "disjointWith", "disjointUnionOf", "hasKey"
                                     )
                                     addKeywords(classKeywords)
-                                } else if (ruleIndex == OwlDslParser.RULE_objectPropertyAxiom) {
+                                } else if (ruleIndex == OwlDslParser.RULE_objectPropertyAxiom || 
+                                           ruleIndex == OwlDslParser.RULE_objectPropertyDomainRangeAxiom || 
+                                           ruleIndex == OwlDslParser.RULE_objectSubPropertyAxiom) {
                                     val opKeywords = subpropertySynonyms + listOf(
                                         "domain", "range", "characteristics", "inverseOf"
                                     )
                                     addKeywords(opKeywords)
-                                } else if (ruleIndex == OwlDslParser.RULE_dataPropertyAxiom) {
+                                } else if (ruleIndex == OwlDslParser.RULE_dataPropertyAxiom ||
+                                           ruleIndex == OwlDslParser.RULE_dataPropertyDomainRangeAxiom ||
+                                           ruleIndex == OwlDslParser.RULE_dataSubPropertyAxiom) {
                                     val dpKeywords = subpropertySynonyms + listOf(
                                         "domain", "range", "characteristics"
                                     )
@@ -113,7 +198,7 @@ class AmsCompletionContributor : CompletionContributor() {
                     }
 
                     // Inside Class Axiom
-                    if (isInside(OwlDslParser.RULE_classAxiom) || isInside(OwlDslParser.RULE_classClause)) {
+                    if (isInside(OwlDslParser.RULE_classAxiom) || isInside(OwlDslParser.RULE_classSubOrEqAxiom) || isInside(OwlDslParser.RULE_classClause)) {
                         val classKeywords = subclassSynonyms + listOf(
                             "equivalentTo", "disjointWith", "disjointUnionOf", "hasKey"
                         )
@@ -121,7 +206,7 @@ class AmsCompletionContributor : CompletionContributor() {
                     }
 
                     // Inside Object Property Axiom
-                    if (isInside(OwlDslParser.RULE_objectPropertyAxiom) || isInside(OwlDslParser.RULE_objectPropertyClause)) {
+                    if (isInside(OwlDslParser.RULE_objectPropertyAxiom) || isInside(OwlDslParser.RULE_objectPropertyClause) || isInside(OwlDslParser.RULE_objectPropertyDomainRangeAxiom) || isInside(OwlDslParser.RULE_objectSubPropertyAxiom)) {
                         val opKeywords = subpropertySynonyms + listOf(
                             "domain", "range", "characteristics", "inverseOf"
                         )
@@ -129,7 +214,7 @@ class AmsCompletionContributor : CompletionContributor() {
                     }
 
                     // Inside Data Property Axiom
-                    if (isInside(OwlDslParser.RULE_dataPropertyAxiom) || isInside(OwlDslParser.RULE_dataPropertyClause)) {
+                    if (isInside(OwlDslParser.RULE_dataPropertyAxiom) || isInside(OwlDslParser.RULE_dataPropertyClause) || isInside(OwlDslParser.RULE_dataPropertyDomainRangeAxiom) || isInside(OwlDslParser.RULE_dataSubPropertyAxiom)) {
                         val dpKeywords = subpropertySynonyms + listOf(
                             "domain", "range", "characteristics"
                         )
@@ -157,7 +242,10 @@ class AmsCompletionContributor : CompletionContributor() {
                             AmsPsiUtil.findAxiom(position) != null ||
                             isInsideEntityUsage(position) ||
                             isAfterEntityExpectingKeyword(position) ||
-                            isAfterWhitespaceInEntityContext(position)
+                            isAfterWhitespaceInEntityContext(position) ||
+                            position.node.elementType.toString().contains("IDENTIFIER") ||
+                            position.node.elementType.toString().contains("CURIE") ||
+                            position.node.elementType.toString().contains("IRI")
 
                     if (!isEntityContext) return
 
