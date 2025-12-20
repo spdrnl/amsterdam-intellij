@@ -461,8 +461,10 @@ characteristic
     | INVERSE_KW FUNCTIONAL_KW
     | TRANSITIVE_KW
     | SYMMETRIC_KW
+    | ASYMMETRIC_KW
     | A_KW SYMMETRIC_KW
     | REFLEXIVE_KW
+    | IRREFLEXIVE_KW
     | IR_KW REFLEXIVE_KW
     ;
 
@@ -768,7 +770,9 @@ ANY_KW: [Aa] 'ny';
 FUNCTIONAL_KW: [Ff] 'unctional';
 TRANSITIVE_KW: [Tt] 'ransitive';
 SYMMETRIC_KW: [Ss] 'ymmetric';
+ASYMMETRIC_KW: [Aa] 'symmetric';
 REFLEXIVE_KW: [Rr] 'eflexive';
+IRREFLEXIVE_KW: [Ii] 'rreflexive';
 IR_KW: [Ii] 'r';
 RESTRICTION_KW: [Rr] 'estriction';
 GREATER_KW: [Gg] 'reater';
