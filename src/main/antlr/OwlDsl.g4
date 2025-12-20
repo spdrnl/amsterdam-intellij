@@ -87,53 +87,52 @@ axiom
 classAxiom
     : CLASS_KW commentOpt? classId                                      # ClassDeclAxiom
     | classSubOrEqAxiom                                                # ClassSubOrEqAxiomAlt
-    | EQUIVALENT_CLASSES_KW LPAREN classExprList RPAREN                        # EquivalentClassesAxiom
-    | ALL_DISJOINT_CLASSES_KW LPAREN classExprList RPAREN                       # AllDisjointClassesAxiom
+    | allDisjointClassesPhrase LPAREN classExprList RPAREN             # AllDisjointClassesAxiom
     ;
 
-// classDeclarationTail removed (was empty), to avoid optional-empty warning
-
 classSubOrEqAxiom
-    : CLASS_KW commentOpt? classId (SEMICOLON)? classClause ( SEMICOLON classClause )* (SEMICOLON)?
+    : CLASS_KW commentOpt? classId? (SEMICOLON)? classClause ( SEMICOLON classClause )* (SEMICOLON)?
     ;
 
 classClause
     : subClassOfPhrase commentOpt? classExpr                         # ClassSubClause
-    | equivalentToPhrase classExpr                                   # ClassEquivalentClause
-    | disjointWithPhrase classExpr                                   # ClassDisjointClause
+    | equivalentToPhrase commentOpt? classExpr                       # ClassEquivalentClause
+    | disjointWithPhrase commentOpt? classExpr                       # ClassDisjointClause
     | disjointUnionOfPhrase LPAREN classExprList RPAREN              # ClassDisjointUnionClause
     | hasKeyPhrase LPAREN propExprWithCommentList RPAREN             # ClassHasKeyClause
     ;
 
 subClassOfPhrase
-    : SUB_CLASS_OF_KW
-    | IS_KW A_KW
-    | IS_KW AN_KW
-    | IS_KW SUBCLASS_KW OF_KW
-    | SUBSET_EQ
+    : SUBSET_EQ
     | LE_SEQ
+    | isA
+    | (IS_KW)? SUBCLASS_KW OF_KW
     ;
 
 equivalentToPhrase
-    : EQUIVALENT_TO_KW
-    | EQUIVALENT_KW TO_KW
-    | IS_KW EQUIVALENT_KW TO_KW
+    : isEquivalent TO_KW
     ;
 
 disjointWithPhrase
-    : DISJOINT_WITH_KW
-    | DISJOINT_KW WITH_KW
-    | IS_KW DISJOINT_KW WITH_KW
+    : isDisjoint WITH_KW
     ;
 
 disjointUnionOfPhrase
-    : DISJOINT_UNION_OF_KW
-    | IS_KW DISJOINT_KW UNION_KW OF_KW
+    : isDisjoint UNION_KW OF_KW
+    ;
+
+allDisjointClassesPhrase
+    : ALL_KW DISJOINT_KW CLASSES_KW
     ;
 
 hasKeyPhrase
-    : HAS_KW KEY_KW
+    : has KEY_KW
     ;
+
+isA : IS_KW ( A_KW | AN_KW ) ;
+isEquivalent : (IS_KW)? EQUIVALENT_KW ;
+isDisjoint : (IS_KW)? DISJOINT_KW ;
+has : (HAS_KW)? ;
 
 // Optional inline literal comment to aid readability (no semantic effect)
 commentOpt
@@ -145,22 +144,18 @@ commentOpt
  */
 
 objectPropertyAxiom
-    : ( OBJECT_PROPERTY_KW | OBJECT_KW PROPERTY_KW ) commentOpt? propId     # ObjectPropertyDecl
+    : ( OBJECT_KW PROPERTY_KW ) commentOpt? propId                         # ObjectPropertyDecl
     | objectPropertyDomainRangeAxiom                                    # ObjectPropertyDomainRangeAlt
     | objectSubPropertyAxiom                                            # ObjectSubPropertyAlt
     | objectInversePropertyAxiom                                        # ObjectInversePropertyAlt
-    | EQUIVALENT_OBJECT_PROPERTIES_KW LPAREN propExprWithCommentList RPAREN      # EquivalentObjectPropertiesAxiom
-    | DISJOINT_OBJECT_PROPERTIES_KW LPAREN propExprWithCommentList RPAREN        # DisjointObjectPropertiesAxiom
     ;
 
-// objectPropertyDeclTail removed (was empty), to avoid optional-empty warning
-
 objectSubPropertyAxiom
-    : ( OBJECT_PROPERTY_KW | OBJECT_KW PROPERTY_KW ) commentOpt? propId (SEMICOLON)? subPropertyOfPhrase commentOpt? propExpr (SEMICOLON)?
+    : ( OBJECT_KW PROPERTY_KW ) commentOpt? propId (SEMICOLON)? subPropertyOfPhrase commentOpt? propExpr (SEMICOLON)?
     ;
 
 objectPropertyDomainRangeAxiom
-    : ( OBJECT_PROPERTY_KW | OBJECT_KW PROPERTY_KW ) commentOpt? propId (SEMICOLON)? objectPropertyClause ((SEMICOLON )? objectPropertyClause)* (SEMICOLON)?
+    : ( OBJECT_KW PROPERTY_KW ) commentOpt? propId (SEMICOLON)? objectPropertyClause ((SEMICOLON )? objectPropertyClause)* (SEMICOLON)?
     ;
 
 objectPropertyClause
@@ -168,41 +163,37 @@ objectPropertyClause
     | rangePhrase  commentOpt? classExpr                                        # ObjectPropRangeClause
     | characteristicsPhrase LPAREN characteristicList RPAREN                    # ObjectPropCharacteristicsClause
     | subPropertyOfPhrase commentOpt? propExpr                                  # ObjectPropSubPropertyOfClause
+    | equivalentToPhrase commentOpt? propExprList                               # ObjectPropEquivalentClause
+    | disjointWithPhrase commentOpt? propExprList                               # ObjectPropDisjointClause
     | inverseOfPhrase commentOpt? propExpr                                      # ObjectPropInverseClause
     | INVERSE_KW LPAREN commentOpt? propExpr RPAREN                             # ObjectPropInverseFunction
     ;
 
 subPropertyOfPhrase
-    : SUB_PROPERTY_OF_KW
-    | SUBSET_EQ
+    : SUBSET_EQ
     | LE_SEQ
-    | IS_KW SUBPROPERTY_KW OF_KW
-    | SUBPROPERTY_KW OF_KW
+    | (IS_KW)? SUBPROPERTY_KW OF_KW
     ;
 
 domainPhrase
-    : DOMAIN_KW
-    | HAS_KW DOMAIN_KW
+    : has DOMAIN_KW
     ;
 
 rangePhrase
-    : RANGE_KW
-    | HAS_KW RANGE_KW
+    : has RANGE_KW
     ;
 
 characteristicsPhrase
-    : CHARACTERISTICS_KW
-    | HAS_KW CHARACTERISTICS_KW
+    : has CHARACTERISTICS_KW
     ;
 
 inverseOfPhrase
-    : INVERSE_KW OF_KW
-    | IS_KW INVERSE_KW OF_KW
+    : (IS_KW)? INVERSE_KW OF_KW
     ;
 
 // Standalone inverse axiom for object properties
 objectInversePropertyAxiom
-    : ( OBJECT_PROPERTY_KW | OBJECT_KW PROPERTY_KW ) commentOpt? propId (SEMICOLON)? ( inverseOfPhrase commentOpt? propExpr | INVERSE_KW LPAREN commentOpt? propExpr RPAREN ) (SEMICOLON)?
+    : ( OBJECT_KW PROPERTY_KW ) commentOpt? propId (SEMICOLON)? ( inverseOfPhrase commentOpt? propExpr | INVERSE_KW LPAREN commentOpt? propExpr RPAREN ) (SEMICOLON)?
     ;
 
 /*
@@ -210,21 +201,17 @@ objectInversePropertyAxiom
  */
 
 dataPropertyAxiom
-    : ( DATA_PROPERTY_KW | DATA_KW PROPERTY_KW ) commentOpt? propId                     # DataPropertyDecl
+    : ( DATA_KW PROPERTY_KW ) commentOpt? propId                        # DataPropertyDecl
     | dataPropertyDomainRangeAxiom                                      # DataPropertyDomainRangeAlt
     | dataSubPropertyAxiom                                              # DataSubPropertyAlt
-    | EQUIVALENT_DATA_PROPERTIES_KW LPAREN propExprList RPAREN                   # EquivalentDataPropertiesAxiom
-    | DISJOINT_DATA_PROPERTIES_KW LPAREN propExprList RPAREN                     # DisjointDataPropertiesAxiom
     ;
 
-// dataPropertyDeclTail removed (was empty), to avoid optional-empty warning
-
 dataSubPropertyAxiom
-    : ( DATA_PROPERTY_KW | DATA_KW PROPERTY_KW ) commentOpt? propId (SEMICOLON)? subPropertyOfPhrase propExpr (SEMICOLON)?
+    : ( DATA_KW PROPERTY_KW ) commentOpt? propId (SEMICOLON)? subPropertyOfPhrase propExpr (SEMICOLON)?
     ;
 
 dataPropertyDomainRangeAxiom
-    : ( DATA_PROPERTY_KW | DATA_KW PROPERTY_KW ) commentOpt? propId (SEMICOLON)? dataPropertyClause ((SEMICOLON )? dataPropertyClause)* (SEMICOLON)?
+    : ( DATA_KW PROPERTY_KW ) commentOpt? propId (SEMICOLON)? dataPropertyClause ((SEMICOLON )? dataPropertyClause)* (SEMICOLON)?
     ;
 
 dataPropertyClause
@@ -232,6 +219,8 @@ dataPropertyClause
     | rangePhrase  dataRangeExpr                                               # DataPropRangeClause
     | characteristicsPhrase LPAREN dataCharacteristicList RPAREN               # DataPropCharacteristicsClause
     | subPropertyOfPhrase propExpr                                             # DataPropSubPropertyOfClause
+    | equivalentToPhrase propExprList                                          # DataPropEquivalentClause
+    | disjointWithPhrase propExprList                                          # DataPropDisjointClause
     ;
 
 /*
@@ -239,8 +228,8 @@ dataPropertyClause
  */
 
 annotationPropertyAxiom
-    : ( ANNOTATION_PROPERTY_KW | ANNOTATION_KW PROPERTY_KW ) commentOpt? propId (SEMICOLON)? annotationPropertyClause ((SEMICOLON )? annotationPropertyClause)* (SEMICOLON)?  # AnnotationPropertyWithClauses
-    | ( ANNOTATION_PROPERTY_KW | ANNOTATION_KW PROPERTY_KW ) commentOpt? propId                                                                             # AnnotationPropertyDecl
+    : ( ANNOTATION_KW PROPERTY_KW ) commentOpt? propId (SEMICOLON)? annotationPropertyClause ((SEMICOLON )? annotationPropertyClause)* (SEMICOLON)?  # AnnotationPropertyWithClauses
+    | ( ANNOTATION_KW PROPERTY_KW ) commentOpt? propId                                                                             # AnnotationPropertyDecl
     ;
 
 annotationPropertyClause
@@ -256,8 +245,6 @@ datatypeAxiom
     | DATATYPE_DEFINITION_KW commentOpt? datatypeId dataRangeExpr
     ;
 
-// Note: Standalone HasKey axiom removed to align with Turtle-style inline class clause
-
 /*
  * Subproperty chain axioms
  */
@@ -267,8 +254,7 @@ subPropertyChainAxiom
     ;
 
 subPropertyChainPhrase
-    : SUB_PROPERTY_CHAIN_KW
-    | SUBPROPERTY_CHAIN_KW CHAIN_KW
+    : SUBPROPERTY_KW CHAIN_KW
     ;
 
 /*
@@ -296,8 +282,7 @@ typeBody
     ;
 
 isAPhrase
-    : IS_KW A_KW
-    | IS_KW AN_KW
+    : isA
     ;
 
 // Group same/different variants for reuse at the end of an individual block
@@ -307,15 +292,11 @@ sameOrDifferentBody
     ;
 
 sameAsPhrase
-    : SAME_AS_KW
-    | SAME_KW AS_KW
-    | IS_KW SAME_KW AS_KW
+    : (IS_KW)? SAME_KW AS_KW
     ;
 
 differentFromPhrase
-    : DIFFERENT_FROM_KW
-    | DIFFERENT_KW FROM_KW
-    | IS_KW DIFFERENT_KW FROM_KW
+    : (IS_KW)? DIFFERENT_KW FROM_KW
     ;
 
 propAssertionList
@@ -366,16 +347,16 @@ atomicClassExpr
     | ( NOT_KW | NOT_SYM ) primaryClassExpr                   # ComplementClassExpr
     | ( SOME_KW | SOME_SYM ) commentOpt? propExpr commentOpt? classExpr                 # SomeValuesFromExpr
     | ( ONLY_KW | ONLY_SYM ) commentOpt? propExpr commentOpt? classExpr                 # AllValuesFromExpr
-    | HAS_VALUE_KW commentOpt? propExpr entityUsage                   # ObjectHasValueExpr
-    | HAS_VALUE_KW propExpr literal                        # DataHasValueExpr
+    | has VALUE_KW commentOpt? propExpr entityUsage                   # ObjectHasValueExpr
+    | has VALUE_KW propExpr literal                        # DataHasValueExpr
     | MIN_KW INTEGER commentOpt? propExpr ( commentOpt? classExpr )?  # MinCardinalityExpr
     | MAX_KW INTEGER commentOpt? propExpr ( commentOpt? classExpr )?  # MaxCardinalityExpr
     | EXACTLY_KW INTEGER commentOpt? propExpr ( commentOpt? classExpr )?              # ExactCardinalityExpr
     // Manchester-style, property-first variants (sugar):
     | (THAT_KW)? commentOpt? propExpr ( SOME_KW | SOME_SYM ) commentOpt? classExpr                 # SomeValuesFromExpr_M
     | (THAT_KW)? commentOpt? propExpr ( ONLY_KW | ONLY_SYM ) commentOpt? classExpr                 # AllValuesFromExpr_M
-    | (THAT_KW)? commentOpt? propExpr HAS_VALUE_KW entityUsage                               # ObjectHasValueExpr_M
-    | (THAT_KW)? propExpr HAS_VALUE_KW literal                                                # DataHasValueExpr_M
+    | (THAT_KW)? commentOpt? propExpr has VALUE_KW entityUsage                               # ObjectHasValueExpr_M
+    | (THAT_KW)? propExpr has VALUE_KW literal                                                # DataHasValueExpr_M
     | (THAT_KW)? commentOpt? propExpr MIN_KW INTEGER ( commentOpt? classExpr )?              # MinCardinalityExpr_M
     | (THAT_KW)? commentOpt? propExpr MAX_KW INTEGER ( commentOpt? classExpr )?              # MaxCardinalityExpr_M
     | (THAT_KW)? commentOpt? propExpr EXACTLY_KW INTEGER ( commentOpt? classExpr )?          # ExactCardinalityExpr_M
@@ -399,21 +380,15 @@ atMostPhrase
     ;
 
 oneOfPhrase
-    : ONE_OF_KW
-    | ONE_KW OF_KW
-    | IS_KW ONE_KW OF_KW
+    : (IS_KW)? ONE_KW OF_KW
     ;
 
 allOfPhrase
-    : ALL_OF_KW
-    | ALL_KW OF_KW
-    | IS_KW ALL_KW OF_KW
+    : (IS_KW)? ALL_KW OF_KW
     ;
 
 anyOfPhrase
-    : ANY_OF_KW
-    | ANY_KW OF_KW
-    | IS_KW ANY_KW OF_KW
+    : (IS_KW)? ANY_KW OF_KW
     ;
 
 // Connector used inside named-class-with-that sugar; allows optional 'and' before 'that'
@@ -427,8 +402,8 @@ thatConnector
 thatRestriction
     : thatConnector commentOpt? propExpr ( SOME_KW | SOME_SYM ) commentOpt? classExpr       # ThatSomeValuesFrom
     | thatConnector commentOpt? propExpr ( ONLY_KW | ONLY_SYM ) commentOpt? classExpr       # ThatAllValuesFrom
-    | thatConnector commentOpt? propExpr HAS_VALUE_KW entityUsage                      # ThatObjectHasValue
-    | thatConnector propExpr HAS_VALUE_KW literal                                       # ThatDataHasValue
+    | thatConnector commentOpt? propExpr has VALUE_KW entityUsage                      # ThatObjectHasValue
+    | thatConnector propExpr has VALUE_KW literal                                       # ThatDataHasValue
     // Cardinalities (optional filler)
     | thatConnector commentOpt? propExpr MIN_KW INTEGER ( commentOpt? classExpr )?     # ThatMinCardinality
     | thatConnector commentOpt? propExpr MAX_KW INTEGER ( commentOpt? classExpr )?     # ThatMaxCardinality
@@ -483,12 +458,12 @@ characteristicList
 
 characteristic
     : FUNCTIONAL_KW
-    | INVERSE_FUNCTIONAL_KW
+    | INVERSE_KW FUNCTIONAL_KW
     | TRANSITIVE_KW
     | SYMMETRIC_KW
-    | ASYMMETRIC_KW
+    | A_KW SYMMETRIC_KW
     | REFLEXIVE_KW
-    | IRREFLEXIVE_KW
+    | IR_KW REFLEXIVE_KW
     ;
 
 dataCharacteristicList
@@ -565,7 +540,6 @@ entityUsage
     : CURIE
     | CURIE_EMPTY
     | fullIRI
-    | IDENTIFIER
     | INTELLIJ_DUMMY
     ;
 
@@ -573,7 +547,6 @@ entityId
     : CURIE
     | CURIE_EMPTY
     | fullIRI
-    | IDENTIFIER
     | INTELLIJ_DUMMY
     ;
 
@@ -581,7 +554,6 @@ classId
     : CURIE
     | CURIE_EMPTY
     | fullIRI
-    | IDENTIFIER
     | INTELLIJ_DUMMY
     ;
 
@@ -589,7 +561,6 @@ propId
     : CURIE
     | CURIE_EMPTY
     | fullIRI
-    | IDENTIFIER
     | INTELLIJ_DUMMY
     ;
 
@@ -597,7 +568,6 @@ individualId
     : CURIE
     | CURIE_EMPTY
     | fullIRI
-    | IDENTIFIER
     | INTELLIJ_DUMMY
     ;
 
@@ -605,7 +575,6 @@ datatypeId
     : CURIE
     | CURIE_EMPTY
     | fullIRI
-    | IDENTIFIER
     | INTELLIJ_DUMMY
     ;
 
@@ -743,99 +712,72 @@ BLOCK_COMMENT
     ;
 
 /* Keywords */
-PREFIX_KW: 'Prefix';
-ONTOLOGY_KW: 'Ontology';
+PREFIX_KW: [Pp] 'refix';
+ONTOLOGY_KW: [Oo] 'ntology';
 VERSION_IRI_KW: 'versionIRI';
-CLASS_KW: 'Class';
-EQUIVALENT_CLASSES_KW: 'EquivalentClasses';
-ALL_DISJOINT_CLASSES_KW: 'AllDisjointClasses';
-SUB_CLASS_OF_KW: 'subClassOf';
-IS_KW: 'is';
-A_KW: 'a';
-AN_KW: 'an';
-SUBCLASS_KW: 'subclass';
-OF_KW: 'of';
-EQUIVALENT_TO_KW: 'equivalentTo';
-EQUIVALENT_KW: 'equivalent';
-TO_KW: 'to';
-DISJOINT_WITH_KW: 'disjointWith';
-DISJOINT_KW: 'disjoint';
-WITH_KW: 'with';
-DISJOINT_UNION_OF_KW: 'disjointUnionOf';
-UNION_KW: 'union';
-HAS_KW: 'has';
-KEY_KW: 'key';
-OBJECT_PROPERTY_KW: 'ObjectProperty';
-OBJECT_KW: 'Object';
-PROPERTY_KW: 'property';
-EQUIVALENT_OBJECT_PROPERTIES_KW: 'EquivalentObjectProperties';
-DISJOINT_OBJECT_PROPERTIES_KW: 'DisjointObjectProperties';
-SUB_PROPERTY_OF_KW: 'subPropertyOf';
-SUBPROPERTY_KW: 'subproperty';
-DOMAIN_KW: 'domain';
-RANGE_KW: 'range';
-CHARACTERISTICS_KW: 'characteristics';
-INVERSE_KW: 'inverse';
-DATA_PROPERTY_KW: 'DataProperty';
-DATA_KW: 'Data';
-EQUIVALENT_DATA_PROPERTIES_KW: 'EquivalentDataProperties';
-DISJOINT_DATA_PROPERTIES_KW: 'DisjointDataProperties';
-ANNOTATION_PROPERTY_KW: 'AnnotationProperty';
-ANNOTATION_KW: 'Annotation';
-DATATYPE_KW: 'Datatype';
-DATATYPE_DEFINITION_KW: 'DatatypeDefinition';
-SUB_PROPERTY_CHAIN_KW: 'SubPropertyChain';
-SUBPROPERTY_CHAIN_KW: 'Subproperty';
-CHAIN_KW: 'chain';
-INDIVIDUAL_KW: 'Individual';
-TYPE_KW: 'type';
-SAME_AS_KW: 'sameAs';
-SAME_KW: 'same';
-AS_KW: 'as';
-DIFFERENT_FROM_KW: 'differentFrom';
-DIFFERENT_KW: 'different';
-FROM_KW: 'from';
-NOT_KW: 'not';
-AND_KW: 'and';
-OR_KW: 'or';
-THING_KW: 'Thing';
-NOTHING_KW: 'Nothing';
-SOME_KW: 'some';
-ONLY_KW: 'only';
-HAS_VALUE_KW: 'hasValue';
-MIN_KW: 'min';
-MAX_KW: 'max';
-EXACTLY_KW: 'exactly';
-THAT_KW: 'that';
-AT_KW: 'at';
-LEAST_KW: 'least';
-MOST_KW: 'most';
-ONE_OF_KW: 'oneOf';
-ONE_KW: 'one';
-ALL_OF_KW: 'allOf';
-ALL_KW: 'all';
-ANY_OF_KW: 'anyOf';
-ANY_KW: 'any';
-FUNCTIONAL_KW: 'functional';
-INVERSE_FUNCTIONAL_KW: 'inverseFunctional';
-TRANSITIVE_KW: 'transitive';
-SYMMETRIC_KW: 'symmetric';
-ASYMMETRIC_KW: 'asymmetric';
-REFLEXIVE_KW: 'reflexive';
-IRREFLEXIVE_KW: 'irreflexive';
-RESTRICTION_KW: 'restriction';
-GREATER_KW: 'greater';
-THAN_KW: 'than';
-LESS_KW: 'less';
-EQUAL_KW: 'equal';
-TRUE_KW: 'true';
-FALSE_KW: 'false';
+CLASS_KW: [Cc] 'lass';
+CLASSES_KW: [Cc] 'lasses';
+IS_KW: [Ii] 's';
+A_KW: [Aa];
+AN_KW: [Aa] 'n';
+SUBCLASS_KW: [Ss] 'ubclass';
+OF_KW: [Oo] 'f';
+EQUIVALENT_KW: [Ee] 'quivalent';
+TO_KW: [Tt] 'o';
+DISJOINT_KW: [Dd] 'isjoint';
+WITH_KW: [Ww] 'ith';
+UNION_KW: [Uu] 'nion';
+HAS_KW: [Hh] 'as';
+KEY_KW: [Kk] 'ey';
+OBJECT_KW: [Oo] 'bject';
+PROPERTY_KW: [Pp] 'roperty';
+SUBPROPERTY_KW: [Ss] 'ubproperty';
+DOMAIN_KW: [Dd] 'omain';
+RANGE_KW: [Rr] 'ange';
+CHARACTERISTICS_KW: [Cc] 'haracteristics';
+INVERSE_KW: [Ii] 'nverse';
+DATA_KW: [Dd] 'ata';
+ANNOTATION_KW: [Aa] 'nnotation';
+DATATYPE_KW: [Dd] 'atatype';
+DATATYPE_DEFINITION_KW: [Dd] 'atatype' [Dd] 'efinition';
+CHAIN_KW: [Cc] 'hain';
+INDIVIDUAL_KW: [Ii] 'ndividual';
+TYPE_KW: [Tt] 'ype';
+SAME_KW: [Ss] 'ame';
+AS_KW: [Aa] 's';
+DIFFERENT_KW: [Dd] 'ifferent';
+FROM_KW: [Ff] 'rom';
+NOT_KW: [Nn] 'ot';
+AND_KW: [Aa] 'nd';
+OR_KW: [Oo] 'r';
+THING_KW: [Tt] 'hing';
+NOTHING_KW: [Nn] 'othing';
+SOME_KW: [Ss] 'ome';
+ONLY_KW: [Oo] 'nly';
+VALUE_KW: [Vv] 'alue';
+MIN_KW: [Mm] 'in';
+MAX_KW: [Mm] 'ax';
+EXACTLY_KW: [Ee] 'xactly';
+THAT_KW: [Tt] 'hat';
+AT_KW: [Aa] 't';
+LEAST_KW: [Ll] 'east';
+MOST_KW: [Mm] 'ost';
+ONE_KW: [Oo] 'ne';
+ALL_KW: [Aa] 'll';
+ANY_KW: [Aa] 'ny';
+FUNCTIONAL_KW: [Ff] 'unctional';
+TRANSITIVE_KW: [Tt] 'ransitive';
+SYMMETRIC_KW: [Ss] 'ymmetric';
+REFLEXIVE_KW: [Rr] 'eflexive';
+IR_KW: [Ii] 'r';
+RESTRICTION_KW: [Rr] 'estriction';
+GREATER_KW: [Gg] 'reater';
+THAN_KW: [Tt] 'han';
+LESS_KW: [Ll] 'ess';
+EQUAL_KW: [Ee] 'qual';
+TRUE_KW: [Tt] 'rue';
+FALSE_KW: [Ff] 'alse';
 
-IDENTIFIER
-    : [A-Za-z_] [A-Za-z0-9_]*
-    ;
-
-/* Operators & Symbols */
 DOT: '.';
 COMMA: ',';
 COLON: ':';
@@ -855,6 +797,5 @@ COMPOSITION: 'o';
 THEN: 'then';
 DATATYPE_SEP: '^^';
 
-
-// (no separate AT token; '@' is part of LANGTAG or ANNOTATION)
+IDENTIFIER : [A-Za-z_] [A-Za-z0-9_]* ;
 
